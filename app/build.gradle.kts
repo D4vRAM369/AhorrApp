@@ -106,6 +106,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.3.0")
     implementation("androidx.camera:camera-lifecycle:1.3.0")
     implementation("androidx.camera:camera-view:1.3.0")
+    implementation("com.google.guava:guava:31.1-android") // Prevent crash on some devices
 
     // Retrofit + Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -121,7 +122,10 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.gotrue)
     implementation(libs.supabase.realtime) // Para actualizaciones en tiempo real si queremos
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.okhttp)
-    implementation("io.ktor:ktor-client-core:3.0.0") 
+    implementation("io.ktor:ktor-client-core:2.3.12")
     // Serialization (necesario para Supabase)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")}
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+}

@@ -95,40 +95,51 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
 
     val executor = remember { Executors.newSingleThreadExecutor() }
 
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            executor.shutdown()
+        }
+    }
+
     LaunchedEffect(permissionGranted) {
         if (!permissionGranted) return@LaunchedEffect
-        cameraController.setImageAnalysisAnalyzer(executor, ImageAnalysis.Analyzer { imageProxy ->
-            val mediaImage = imageProxy.image
-            if (mediaImage == null) {
-                imageProxy.close()
-                return@Analyzer
-            }
-
-            if (alreadyHandled) {
-                imageProxy.close()
-                return@Analyzer
-            }
-
-            val input = InputImage.fromMediaImage(
-                mediaImage,
-                imageProxy.imageInfo.rotationDegrees
-            )
-
-            scanner.process(input)
-                .addOnSuccessListener { barcodes ->
-                    val code = barcodes.firstOrNull { it.rawValue != null }?.rawValue?.trim()
-                    if (!code.isNullOrEmpty() && !alreadyHandled) {
-                        alreadyHandled = true
-                        onBarcodeScanned(code)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "Error al procesar imagen", e)
-                }
-                .addOnCompleteListener {
+        
+        runCatching {
+            cameraController.bindToLifecycle(lifecycleOwner)
+            cameraController.setImageAnalysisAnalyzer(executor, ImageAnalysis.Analyzer { imageProxy ->
+                val mediaImage = imageProxy.image
+                if (mediaImage == null) {
                     imageProxy.close()
+                    return@Analyzer
                 }
-        })
+
+                if (alreadyHandled) {
+                    imageProxy.close()
+                    return@Analyzer
+                }
+
+                // Rest of analyzer...
+                val input = InputImage.fromMediaImage(
+                    mediaImage,
+                    imageProxy.imageInfo.rotationDegrees
+                )
+
+                scanner.process(input)
+                    .addOnSuccessListener { barcodes ->
+                        val code = barcodes.firstOrNull { it.rawValue != null }?.rawValue?.trim()
+                        if (!code.isNullOrEmpty() && !alreadyHandled) {
+                            alreadyHandled = true
+                            onBarcodeScanned(code)
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        // Log.e(TAG, "Error...", e)
+                    }
+                    .addOnCompleteListener {
+                        imageProxy.close()
+                    }
+            })
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -139,7 +150,6 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     scaleType = PreviewView.ScaleType.FILL_CENTER
                     controller = cameraController
-                    cameraController.bindToLifecycle(lifecycleOwner)
                 }
             }
         )
