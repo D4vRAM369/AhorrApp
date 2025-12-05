@@ -14,4 +14,10 @@ interface PriceDao {
 
     @Query("SELECT * FROM price_entries ORDER BY timestamp DESC")
     fun observeAll(): Flow<List<PriceEntryEntity>>
+
+    @Query("DELETE FROM price_entries WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @androidx.room.Update
+    suspend fun update(entry: PriceEntryEntity)
 }

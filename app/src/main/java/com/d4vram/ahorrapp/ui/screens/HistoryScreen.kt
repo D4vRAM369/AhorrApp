@@ -1,27 +1,47 @@
 package com.d4vram.ahorrapp.ui.screens
 
-import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4vram.ahorrapp.data.PriceEntryEntity
 import com.d4vram.ahorrapp.viewmodel.TpvViewModel
 import com.d4vram.ahorrapp.viewmodel.rememberTpvViewModel
@@ -31,9 +51,16 @@ import java.util.Locale
 
 @Composable
 fun HistoryScreen(
-    viewModel: TpvViewModel = rememberTpvViewModel()
+    viewModel: TpvViewModel = rememberTpvViewModel(),
+    onSettingsClick: () -> Unit
 ) {
     val history by viewModel.observeHistory().collectAsState(initial = emptyList())
+
+    // States for Dialogs
+    var showDeleteDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
+    var showEditDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
+    var showSyncDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
+    var syncResultInfo by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -41,7 +68,17 @@ fun HistoryScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Historial de precios", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Historial de precios", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            IconButton(onClick = onSettingsClick) {
+                Icon(Icons.Default.Settings, contentDescription = "Ajustes")
+            }
+        }
+
         Text("Últimos productos aportados", style = MaterialTheme.typography.bodyMedium)
 
         if (history.isEmpty()) {
@@ -50,15 +87,126 @@ fun HistoryScreen(
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(history) { entry ->
-                    HistoryCard(entry)
+                    HistoryCard(
+                        entry = entry,
+                        onDelete = { showDeleteDialog = entry },
+                        onEdit = { showEditDialog = entry },
+                        onSync = { showSyncDialog = entry }
+                    )
                 }
             }
         }
     }
+
+    // --- Dialogs ---
+
+    // 1. Delete Logic (Local only)
+    if (showDeleteDialog != null) {
+        val entry = showDeleteDialog!!
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Borrar registro") },
+            text = { Text("¿Estás seguro de borrar '${entry.productName}'? Esta acción solo afectará a tu historial local.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteEntry(entry.id)
+                        showDeleteDialog = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Borrar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // 2. Edit Logic (Update Local)
+    if (showEditDialog != null) {
+        val entry = showEditDialog!!
+        var editName by remember { mutableStateOf(entry.productName ?: "") }
+        var editPrice by remember { mutableStateOf(entry.price.toString()) }
+
+        AlertDialog(
+            onDismissRequest = { showEditDialog = null },
+            title = { Text("Editar producto") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = editName,
+                        onValueChange = { editName = it },
+                        label = { Text("Nombre") }
+                    )
+                    OutlinedTextField(
+                        value = editPrice,
+                        onValueChange = { editPrice = it },
+                        label = { Text("Precio (€)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val newPrice = editPrice.toDoubleOrNull() ?: entry.price
+                    val updatedEntry = entry.copy(
+                        productName = editName,
+                        price = newPrice
+                    )
+                    viewModel.updateEntry(updatedEntry)
+                    showEditDialog = null
+                }) {
+                    Text("Guardar cambios")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // 3. Sync Logic (Manual Re-sync)
+    if (showSyncDialog != null) {
+        val entry = showSyncDialog!!
+        AlertDialog(
+            onDismissRequest = { showSyncDialog = null },
+            title = { Text("Sincronizar con la nube") },
+            text = { Text("Se sincronizarán los datos actualizados a la nube. Por favor, asegúrate de que sean verídicos.\n\nGracias por tu colaboración: entre todos podemos.") },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.syncEntry(entry) { success ->
+                        syncResultInfo = if (success) "Sincronizado correctamente" else "Error al sincronizar"
+                    }
+                    showSyncDialog = null
+                }) {
+                    Text("Sí, sincronizar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSyncDialog = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // Feedback Snackbar/Alert for Sync Result
+    if (syncResultInfo != null) {
+        AlertDialog(
+            onDismissRequest = { syncResultInfo = null },
+            text = { Text(syncResultInfo!!) },
+            confirmButton = { TextButton(onClick = { syncResultInfo = null }) { Text("OK") } }
+        )
+    }
 }
 
 @Composable
-private fun HistoryCard(entry: PriceEntryEntity) {
+private fun HistoryCard(
+    entry: PriceEntryEntity,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    onSync: () -> Unit
+) {
     val date = rememberFormatted(entry.timestamp)
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -70,6 +218,45 @@ private fun HistoryCard(entry: PriceEntryEntity) {
             Text("Precio: %.2f €".format(entry.price), style = MaterialTheme.typography.bodySmall)
             Text("Código: ${entry.barcode}", style = MaterialTheme.typography.bodySmall)
             Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Chip Editar
+                AssistChip(
+                    onClick = onEdit,
+                    label = { Text("Editar", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, Modifier.size(16.dp)) },
+                    colors = AssistChipDefaults.assistChipColors(leadingIconContentColor = MaterialTheme.colorScheme.primary)
+                )
+
+                // Chip Sincronizar (reemplazado por Sync)
+                AssistChip(
+                    onClick = onSync,
+                    label = { Text("Sync", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, Modifier.size(16.dp)) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        leadingIconContentColor = Color(0xFF2E7D32),
+                        labelColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+
+                // Chip Borrar (más discreto o al final)
+                Spacer(Modifier.weight(1f))
+                AssistChip(
+                    onClick = onDelete,
+                    label = { Text("Borrar", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, Modifier.size(16.dp)) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                        labelColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    border = null
+                )
+            }
         }
     }
 }

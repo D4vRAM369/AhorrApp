@@ -82,30 +82,10 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Mis productos escaneados", fontWeight = FontWeight.SemiBold)
-                    Text("Revisa lo que has aportado", style = MaterialTheme.typography.bodySmall)
-                }
-                Button(onClick = onMyProducts) { Text("Ver") }
-            }
-        }
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
                     Text("Historial de precios", fontWeight = FontWeight.SemiBold)
-                    Text("Últimos precios guardados", style = MaterialTheme.typography.bodySmall)
+                    Text("Revisa tus aportaciones", style = MaterialTheme.typography.bodySmall)
                 }
-                Button(onClick = onHistory) { Text("Abrir") }
+                Button(onClick = onHistory) { Text("Ver historial") }
             }
         }
 

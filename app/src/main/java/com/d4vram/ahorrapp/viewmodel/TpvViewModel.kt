@@ -83,6 +83,82 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    fun deleteEntry(id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.deletePrice(id)
+        }
+    }
+
+    fun updateEntry(entry: PriceEntryEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.updatePrice(entry)
+        }
+    }
+
+    fun syncEntry(entry: PriceEntryEntity, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val success = repo.postPrice(
+                barcode = entry.barcode,
+                supermarket = entry.supermarket,
+                price = entry.price,
+                productName = entry.productName,
+                brand = null, // Entry doesn't store brand yet, maybe later
+                moreInfo = null // Entry doesn't store moreInfo yet
+            )
+            launch(Dispatchers.Main) {
+                onResult(success)
+            }
+        }
+    }
+
+    fun importCsv(uri: android.net.Uri, contentResolver: android.content.ContentResolver, onResult: (Int) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val inputStream = contentResolver.openInputStream(uri)
+                val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream))
+                val entries = mutableListOf<PriceEntryEntity>()
+                
+                reader.useLines { lines ->
+                    lines.drop(1).forEach { line -> // Skip header
+                        val parts = line.split(",") // Basic parsing, ideally use a standardized CSV lib
+                        if (parts.size >= 5) {
+                            // Quick fix for parsing logic to match export
+                            // "ID,Barcode,Name,Supermarket,Price,Date"
+                            // NOTE: Basic csv split breaks on commas inside quotes. 
+                            // For this MVP we assume simple data or refined regex logic if needed.
+                            // For simplicity/robustness in MVP without external libs:
+                            try {
+                                val barcode = parts[1]
+                                val name = parts[2].replace("\"", "")
+                                val market = parts[3].replace("\"", "")
+                                val price = parts[4].toDoubleOrNull() ?: 0.0
+                                val timestamp = parts.getOrNull(5)?.toLongOrNull() ?: System.currentTimeMillis()
+                                
+                                entries.add(
+                                    PriceEntryEntity(
+                                        barcode = barcode,
+                                        productName = name,
+                                        supermarket = market,
+                                        price = price,
+                                        timestamp = timestamp
+                                    )
+                                )
+                            } catch (e: Exception) {
+                                // Skip malformed line
+                            }
+                        }
+                    }
+                }
+                repo.importCsvData(entries)
+                entries.size
+            }.onSuccess { count ->
+                launch(Dispatchers.Main) { onResult(count) }
+            }.onFailure {
+                launch(Dispatchers.Main) { onResult(-1) }
+            }
+        }
+    }
+
     companion object {
         fun provideFactory(app: Application): androidx.lifecycle.ViewModelProvider.Factory =
             object : androidx.lifecycle.ViewModelProvider.Factory {

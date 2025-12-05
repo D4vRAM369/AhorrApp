@@ -72,4 +72,18 @@ class Repository(context: Context) {
     }
 
     fun observePriceHistory(): Flow<List<PriceEntryEntity>> = priceDao.observeAll()
+
+    suspend fun deletePrice(id: Long) {
+        priceDao.delete(id)
+    }
+
+    suspend fun updatePrice(entry: PriceEntryEntity) {
+        priceDao.update(entry)
+    }
+
+    suspend fun importCsvData(entries: List<PriceEntryEntity>) {
+        // Room doesn't have bulk insert in this Dao yet, loop or add @Insert(List)
+        // For safety and simplicity in this sprint, we loop. Ideally we update Dao.
+        entries.forEach { priceDao.insert(it) }
+    }
 }

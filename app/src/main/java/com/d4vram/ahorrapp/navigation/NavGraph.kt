@@ -43,7 +43,11 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues) {
         }
 
         composable("history") {
-            HistoryScreen()
+            HistoryScreen(onSettingsClick = { nav.navigate("profile") })
+        }
+
+        composable("profile") {
+            com.d4vram.ahorrapp.ui.screens.ProfileScreen(onBack = { nav.popBackStack() })
         }
     }
 }
