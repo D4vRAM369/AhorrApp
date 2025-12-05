@@ -5,17 +5,31 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# --- KOTLINX SERIALIZATION ---
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keep,allowobfuscation,allowshrinking class kotlinx.serialization.* { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Prevent R8 from stripping Serializer classes for your data classes
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable <init>(...);
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# --- SUPABASE & KTOR ---
+-keep class io.ktor.** { *; }
+-keep class io.github.jan.supabase.** { *; }
+-dontwarn io.ktor.**
+-dontwarn io.github.jan.supabase.**
+
+# --- ENTITIES ---
+# Keep your data classes from being renamed so Serialization can find fields by name if needed
+-keep class com.d4vram.ahorrapp.data.** { *; }
+
+# --- ANDROID COMPONENTS ---
+-keepattributes SourceFile,LineNumberTable # Useful for crash reporting
+
+# --- SLF4J (Ktor logging dependency) ---
+-dontwarn org.slf4j.**
+-dontnote org.slf4j.**
+
+# --- RETROFIT & GSON rules removed by user request (revert) ---

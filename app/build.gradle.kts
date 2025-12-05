@@ -35,11 +35,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = false // Revertido por fallos con R8
+            // isShrinkResources = false // Desactivado implícitamente al desactivar minify
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug") 
         }
     }
 
