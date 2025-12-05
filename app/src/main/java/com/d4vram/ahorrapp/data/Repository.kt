@@ -5,13 +5,32 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+import com.d4vram.ahorrapp.BuildConfig
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.from
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SupabasePriceEntry(
+    val barcode: String,
+    val supermarket: String,
+    val price: Double,
+    @SerialName("product_name") val productName: String?,
+    val brand: String?,
+    @SerialName("more_info") val moreInfo: String?
+)
+
 class Repository(context: Context) {
 
-    private val backendApi = Retrofit.Builder()
-        .baseUrl("https://TU_BACKEND.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(ApiService::class.java)
+    // Cliente Supabase conectado a tu proyecto real
+    private val supabase = createSupabaseClient(
+        supabaseUrl = BuildConfig.SUPABASE_URL,
+        supabaseKey = BuildConfig.SUPABASE_KEY
+    ) {
+        install(Postgrest)
+    }
 
     private val openFoodApi = Retrofit.Builder()
         .baseUrl("https://world.openfoodfacts.org/")
@@ -32,23 +51,25 @@ class Repository(context: Context) {
     ): Boolean {
         var remoteSuccess = true
         runCatching {
-            backendApi.uploadPrice(
-                PricePayload(
+            supabase.from("prices").insert(
+                SupabasePriceEntry(
                     barcode = barcode,
                     supermarket = supermarket,
                     price = price,
-                    timestamp = System.currentTimeMillis(),
                     productName = productName,
                     brand = brand,
                     moreInfo = moreInfo
                 )
             )
-        }.onFailure { remoteSuccess = false }
+        }.onFailure { 
+            it.printStackTrace()
+            remoteSuccess = false 
+        }
 
         priceDao.insert(
             PriceEntryEntity(
                 barcode = barcode,
-                productName = productName, // Local DB entity might need update too, but keeping minimal for now
+                productName = productName,
                 supermarket = supermarket,
                 price = price,
                 timestamp = System.currentTimeMillis()
