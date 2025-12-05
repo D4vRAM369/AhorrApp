@@ -22,7 +22,14 @@ class Repository(context: Context) {
     private val db = AppDatabase.getInstance(context)
     private val priceDao = db.priceDao()
 
-    suspend fun postPrice(barcode: String, supermarket: String, price: Double, productName: String?): Boolean {
+    suspend fun postPrice(
+        barcode: String,
+        supermarket: String,
+        price: Double,
+        productName: String?,
+        brand: String?,
+        moreInfo: String?
+    ): Boolean {
         var remoteSuccess = true
         runCatching {
             backendApi.uploadPrice(
@@ -30,7 +37,10 @@ class Repository(context: Context) {
                     barcode = barcode,
                     supermarket = supermarket,
                     price = price,
-                    timestamp = System.currentTimeMillis()
+                    timestamp = System.currentTimeMillis(),
+                    productName = productName,
+                    brand = brand,
+                    moreInfo = moreInfo
                 )
             )
         }.onFailure { remoteSuccess = false }
@@ -38,7 +48,7 @@ class Repository(context: Context) {
         priceDao.insert(
             PriceEntryEntity(
                 barcode = barcode,
-                productName = productName,
+                productName = productName, // Local DB entity might need update too, but keeping minimal for now
                 supermarket = supermarket,
                 price = price,
                 timestamp = System.currentTimeMillis()

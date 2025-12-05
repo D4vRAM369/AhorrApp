@@ -2,13 +2,11 @@ package com.d4vram.ahorrapp.viewmodel
 
 
 import android.app.Application
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4vram.ahorrapp.data.PriceEntryEntity
 import com.d4vram.ahorrapp.data.ProductInfo
 import com.d4vram.ahorrapp.data.Repository
@@ -25,9 +23,16 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendPrice(barcode: String, supermarket: String, price: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            val productName = productState.product?.name
+            val currentProduct = productState.product
             runCatching {
-                repo.postPrice(barcode, supermarket, price, productName)
+                repo.postPrice(
+                    barcode = barcode,
+                    supermarket = supermarket,
+                    price = price,
+                    productName = currentProduct?.name,
+                    brand = currentProduct?.brand,
+                    moreInfo = currentProduct?.moreInfo
+                )
             }
         }
     }
@@ -43,11 +48,19 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
             val result = runCatching { repo.fetchProduct(barcode) }
             productState = result.fold(
                 onSuccess = { product ->
-                    ProductLookupState(
-                        isLoading = false,
-                        product = product,
-                        error = null
-                    )
+                    if (product == null) {
+                        ProductLookupState(
+                            isLoading = false,
+                            product = null,
+                            error = "Producto no encontrado"
+                        )
+                    } else {
+                        ProductLookupState(
+                            isLoading = false,
+                            product = product,
+                            error = null
+                        )
+                    }
                 },
                 onFailure = { e ->
                     ProductLookupState(
@@ -62,6 +75,14 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     fun observeHistory(): Flow<List<PriceEntryEntity>> = repo.observePriceHistory()
 
+    fun overrideProduct(productInfo: ProductInfo) {
+        productState = ProductLookupState(
+            isLoading = false,
+            product = productInfo,
+            error = null
+        )
+    }
+
     companion object {
         fun provideFactory(app: Application): androidx.lifecycle.ViewModelProvider.Factory =
             object : androidx.lifecycle.ViewModelProvider.Factory {
@@ -75,14 +96,10 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+}
+
 data class ProductLookupState(
     val isLoading: Boolean = false,
     val product: ProductInfo? = null,
     val error: String? = null
 )
-
-@Composable
-fun rememberTpvViewModel(): TpvViewModel {
-    val app = androidx.compose.ui.platform.LocalContext.current.applicationContext as Application
-    return viewModel(factory = TpvViewModel.provideFactory(app))
-}}
