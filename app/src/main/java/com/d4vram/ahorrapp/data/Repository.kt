@@ -1,0 +1,65 @@
+package com.d4vram.ahorrapp.data
+
+import android.content.Context
+import kotlinx.coroutines.flow.Flow
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+class Repository(context: Context) {
+
+    private val backendApi = Retrofit.Builder()
+        .baseUrl("https://TU_BACKEND.com/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(ApiService::class.java)
+
+    private val openFoodApi = Retrofit.Builder()
+        .baseUrl("https://world.openfoodfacts.org/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(OpenFoodApiService::class.java)
+
+    private val db = AppDatabase.getInstance(context)
+    private val priceDao = db.priceDao()
+
+    suspend fun postPrice(barcode: String, supermarket: String, price: Double, productName: String?): Boolean {
+        var remoteSuccess = true
+        runCatching {
+            backendApi.uploadPrice(
+                PricePayload(
+                    barcode = barcode,
+                    supermarket = supermarket,
+                    price = price,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        }.onFailure { remoteSuccess = false }
+
+        priceDao.insert(
+            PriceEntryEntity(
+                barcode = barcode,
+                productName = productName,
+                supermarket = supermarket,
+                price = price,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+
+        return remoteSuccess
+    }
+
+    suspend fun fetchProduct(barcode: String): ProductInfo? {
+        val response = openFoodApi.fetchProduct(barcode)
+
+        if (response.status != 1 || response.product == null) return null
+
+        val name = response.product.productName?.trim().orEmpty()
+        val brand = response.product.brands?.split(",")?.firstOrNull()?.trim()
+
+        if (name.isEmpty()) return null
+
+        return ProductInfo(name = name, brand = brand)
+    }
+
+    fun observePriceHistory(): Flow<List<PriceEntryEntity>> = priceDao.observeAll()
+}
