@@ -36,10 +36,39 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         _isDarkMode.value = !_isDarkMode.value
     }
 
-    init {
-        // ... existing init code if any ...
-        // refreshHistory() // This function is not defined in the provided code.
+    private val _isAppLocked = MutableStateFlow(false)
+    val isAppLocked: StateFlow<Boolean> = _isAppLocked.asStateFlow()
+
+    private val _currentNickname = MutableStateFlow("Usuario Anónimo")
+    val currentNickname: StateFlow<String> = _currentNickname.asStateFlow()
+    
+    // Store Device ID
+    private val deviceId: String by lazy {
+        android.provider.Settings.Secure.getString(application.contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "unknown_device"
     }
+
+    init {
+        checkLicense()
+    }
+
+    private fun checkLicense() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val (isActive, nickname) = repo.checkDeviceLicense(deviceId)
+            _isAppLocked.value = !isActive
+            if (nickname != null) {
+                _currentNickname.value = nickname
+            }
+        }
+    }
+
+    fun saveNickname(newName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.updateNickname(deviceId, newName)
+            _currentNickname.value = newName
+        }
+    }
+    
+    fun getDeviceIdStr(): String = deviceId
 
     fun sendPrice(barcode: String, supermarket: String, price: Double) {
         viewModelScope.launch(Dispatchers.IO) {

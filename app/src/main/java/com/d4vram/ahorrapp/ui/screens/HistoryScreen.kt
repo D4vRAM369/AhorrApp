@@ -84,9 +84,12 @@ fun HistoryScreen(
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = onSettingsClick) {
-                Icon(Icons.Default.Settings, contentDescription = "Ajustes")
-            }
+            AssistChip(
+                onClick = onSettingsClick,
+                label = { Text("Perfil") },
+                trailingIcon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes", modifier = Modifier.size(18.dp)) },
+                border = AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            )
         }
 
         Text("Últimos productos aportados", style = MaterialTheme.typography.bodyMedium)

@@ -10,6 +10,8 @@ import com.d4vram.ahorrapp.ui.screens.HomeScreen
 import com.d4vram.ahorrapp.ui.screens.PriceEntryScreen
 import com.d4vram.ahorrapp.ui.screens.ScannerScreen
 import com.d4vram.ahorrapp.ui.screens.WelcomeScreen
+import com.d4vram.ahorrapp.ui.screens.LockScreen
+import androidx.compose.runtime.LaunchedEffect
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,6 +19,17 @@ import com.d4vram.ahorrapp.viewmodel.TpvViewModel
 
 @Composable
 fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewModel) {
+
+    // --- SOLUTION ---
+    // Move the LaunchedEffect here, into the Composable scope of NavGraph
+    val isLocked by viewModel.isAppLocked.collectAsState()
+    LaunchedEffect(isLocked) {
+        if (isLocked) {
+            nav.navigate("lock") {
+                popUpTo(0) // Clear backstack so user can't go back
+            }
+        }
+    }
 
     NavHost(
         navController = nav,
@@ -26,6 +39,12 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
         composable("welcome") {
             WelcomeScreen(onContinue = { nav.navigate("home") })
         }
+
+        composable("lock") {
+            LockScreen(deviceId = viewModel.getDeviceIdStr())
+        }
+
+        // The LaunchedEffect that was causing the error has been moved out.
 
         composable("home") {
             val isDarkMode by viewModel.isDarkMode.collectAsState()

@@ -26,6 +26,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4vram.ahorrapp.R
@@ -132,6 +133,52 @@ fun WelcomeScreen(onContinue: () -> Unit) {
         ) {
             Text("Empezar ahora")
         }
-        Spacer(modifier = Modifier.height(16.dp))
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+}
+// The extra spacer and brace that were here have been removed.
+
+
+@Composable
+fun LockScreen(deviceId: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("🔒", style = MaterialTheme.typography.displayLarge)
+        Spacer(Modifier.height(24.dp))
+        Text(
+            "Acceso Restringido",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.error
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "Esta aplicación ha sido desactivada en este dispositivo. Probablemente hay una actualización pendiente o se ha detectado un error crítico en el que estoy trabajando.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(Modifier.height(24.dp))
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+            Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("ID del Dispositivo:", style = MaterialTheme.typography.labelMedium)
+                Text(deviceId, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Monospace)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+        Text(
+            "Para más información, contáctame en:",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "t.me/D4vRAM369",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
     }
 }

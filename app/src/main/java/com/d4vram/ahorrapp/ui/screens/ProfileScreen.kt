@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,9 +57,9 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val history by viewModel.observeHistory().collectAsState(initial = emptyList())
-    var username by remember { mutableStateOf("Usuario Anónimo") } // Placeholder for persistence
+    val savedNickname by viewModel.currentNickname.collectAsState()
+    var username by remember(savedNickname) { mutableStateOf(savedNickname) } 
     val scope = rememberCoroutineScope()
-
     val csvLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -94,12 +95,21 @@ fun ProfileScreen(
         ) {
             // Sección Usuario
             Text("Información de usuario", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            val isModified = username != savedNickname
+            
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
                 label = { Text("Nombre de usuario") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                trailingIcon = {
+                    if (isModified && username.isNotBlank()) {
+                        IconButton(onClick = { viewModel.saveNickname(username) }) {
+                            Icon(Icons.Default.Check, contentDescription = "Guardar", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
             )
             Text(
                 "Este nombre se usará para identificar tus aportaciones en la comunidad.",
