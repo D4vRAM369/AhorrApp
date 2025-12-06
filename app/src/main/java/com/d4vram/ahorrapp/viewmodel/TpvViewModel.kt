@@ -12,6 +12,9 @@ import com.d4vram.ahorrapp.data.ProductInfo
 import com.d4vram.ahorrapp.data.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TpvViewModel(application: Application) : AndroidViewModel(application) {
@@ -20,6 +23,18 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     var productState by mutableStateOf(ProductLookupState())
         private set
+
+    private val _isDarkMode = MutableStateFlow(false)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
+    fun toggleDarkMode() {
+        _isDarkMode.value = !_isDarkMode.value
+    }
+
+    init {
+        // ... existing init code if any ...
+        // refreshHistory() // This function is not defined in the provided code.
+    }
 
     fun sendPrice(barcode: String, supermarket: String, price: Double) {
         viewModelScope.launch(Dispatchers.IO) {

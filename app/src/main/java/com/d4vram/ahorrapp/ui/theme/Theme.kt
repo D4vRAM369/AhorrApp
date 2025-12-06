@@ -10,21 +10,36 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = GreenPrimaryDark,
+    onPrimary = GreenOnPrimaryDark,
+    primaryContainer = GreenContainerDark,
+    onPrimaryContainer = GreenOnContainerDark,
+    secondary = GreenSecondary,
+    background = DarkBackground,
+    surface = DarkSurface,
+    surfaceVariant = DarkSurface, // Consistent cards
+    onSurface = Color.White,
+    onBackground = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = GreenPrimary,
+    onPrimary = GreenOnPrimary,
+    primaryContainer = GreenContainer,
+    onPrimaryContainer = GreenOnContainer,
+    secondary = GreenSecondary,
+    background = LightBackground,
+    surface = LightSurface,
+    surfaceVariant = Color(0xFFE8F5E9), // Light Green for cards
+    onSurface = Color.Black,
+    onBackground = Color.Black
 )
 
 @Composable

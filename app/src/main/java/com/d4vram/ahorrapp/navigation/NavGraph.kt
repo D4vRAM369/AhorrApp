@@ -11,8 +11,12 @@ import com.d4vram.ahorrapp.ui.screens.PriceEntryScreen
 import com.d4vram.ahorrapp.ui.screens.ScannerScreen
 import com.d4vram.ahorrapp.ui.screens.WelcomeScreen
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.d4vram.ahorrapp.viewmodel.TpvViewModel
+
 @Composable
-fun NavGraph(nav: NavHostController, padding: PaddingValues) {
+fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewModel) {
 
     NavHost(
         navController = nav,
@@ -24,10 +28,13 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues) {
         }
 
         composable("home") {
+            val isDarkMode by viewModel.isDarkMode.collectAsState()
             HomeScreen(
                 onScan = { nav.navigate("scanner") },
                 onHistory = { nav.navigate("history") },
-                onMyProducts = { nav.navigate("history") }
+                onMyProducts = { nav.navigate("history") },
+                isDarkMode = isDarkMode,
+                onToggleTheme = { viewModel.toggleDarkMode() }
             )
         }
 

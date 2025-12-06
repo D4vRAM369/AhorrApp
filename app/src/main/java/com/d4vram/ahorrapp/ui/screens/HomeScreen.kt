@@ -25,11 +25,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4vram.ahorrapp.R
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+
 @Composable
 fun HomeScreen(
     onScan: () -> Unit,
     onHistory: () -> Unit,
-    onMyProducts: () -> Unit
+    onMyProducts: () -> Unit,
+    isDarkMode: Boolean,
+    onToggleTheme: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -51,6 +61,18 @@ fun HomeScreen(
                 Text("AhorrApp", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text("Escanea, comparte y ahorra en Canarias", style = MaterialTheme.typography.bodyMedium)
             }
+            Spacer(modifier = Modifier.weight(1f))
+            Switch(
+                checked = isDarkMode,
+                onCheckedChange = { onToggleTheme() },
+                thumbContent = {
+                    Icon(
+                        imageVector = if (isDarkMode) Icons.Filled.Nightlight else Icons.Filled.WbSunny,
+                        contentDescription = null,
+                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                    )
+                }
+            )
         }
 
         Card(
@@ -89,11 +111,52 @@ fun HomeScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Spacer(modifier = Modifier.weight(1f)) // Push footer to bottom
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(
-                "Gracias a la colaboración de todos podemos comparar precios y ahorrar. Cada aporte suma.",
-                style = MaterialTheme.typography.bodyMedium
+                "Desarrollado por D4vRAM, con amor por el open source desde Gran Canaria ❤️🇮🇨 \n\n " +
+                        "Toda aportación a esta app es bienvenida, por pequeña que sea. Se aceptan también además de método de pago convencional en criptomonedas. Direcciones en la Bio de BuyMeACoffee.",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+
+            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+
+            // This is the problematic line, you should delete it.
+            // androidx.compose.foundation.clickable { uriHandler.openUri("https://www.buymeacoffee.com/D4vRAM369") }
+
+            // This Row already correctly handles the clicks with Buttons.
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Button(
+                    onClick = { uriHandler.openUri("https://www.buymeacoffee.com/D4vRAM369") },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFDD00))
+                ) {
+                    Text("☕ Buy me a Coffee", color = androidx.compose.ui.graphics.Color.Black)
+                }
+
+                Button(
+                    onClick = { uriHandler.openUri("https://github.com/D4vRAM369/") },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Black)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.mipmap.ic_github), 
+                        contentDescription = null, 
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("GitHub Profile", color = androidx.compose.ui.graphics.Color.White)
+                }
+            }
+
+            androidx.compose.material3.AssistChip(
+                onClick = { /* Repo not created yet */ },
+                label = { Text("Repositorio del proyecto (Pronto)") },
+                leadingIcon = { Icon(Icons.Default.Code, null) }
             )
         }
     }
