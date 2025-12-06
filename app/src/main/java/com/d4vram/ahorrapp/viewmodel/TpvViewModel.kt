@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -216,11 +217,33 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
 
+    var isListViewMode by mutableStateOf(false)
+        private set
+
+    fun toggleListViewMode() {
+        isListViewMode = !isListViewMode
+    }
+
+    val allProductsComparison: StateFlow<Map<String, List<PriceEntryEntity>>> = repo.getAllPrices()
+        .map { entries -> 
+            entries.groupBy { it.productName ?: "Desconocido" }
+        }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyMap())
+
     var selectedProductInfo by mutableStateOf<ProductInfo?>(null)
         private set
 
     fun updateSearchQuery(query: String) {
         searchQuery = query
+        // If content changes and doesn't match selected product, clear selection to show search/list again
+        if (selectedProductName != null && query != selectedProductName) {
+            selectedProductName = null
+        }
+    }
+
+    fun clearSelection() {
+        selectedProductName = null
+        searchQuery = "" // Optional: clear search text too? User usually expects clear on "List Mode" click.
     }
 
     fun selectProduct(name: String) {

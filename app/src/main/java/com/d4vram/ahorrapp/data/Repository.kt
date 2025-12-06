@@ -112,4 +112,6 @@ class Repository(context: Context) {
     fun searchProducts(query: String): Flow<List<String>> = priceDao.searchProductNames(query)
 
     fun getProductPrices(productName: String): Flow<List<PriceEntryEntity>> = priceDao.getPricesForProduct(productName)
+
+    fun getAllPrices(): Flow<List<PriceEntryEntity>> = priceDao.getAllPrices()
 }

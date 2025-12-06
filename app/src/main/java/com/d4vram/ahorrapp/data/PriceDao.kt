@@ -26,4 +26,9 @@ interface PriceDao {
 
     @Query("SELECT * FROM price_entries WHERE productName = :productName ORDER BY price ASC")
     fun getPricesForProduct(productName: String): Flow<List<PriceEntryEntity>>
+    @Query("SELECT DISTINCT productName FROM price_entries WHERE productName IS NOT NULL ORDER BY productName ASC")
+    fun getAllProductNames(): Flow<List<String>>
+
+    @Query("SELECT * FROM price_entries WHERE productName IS NOT NULL")
+    fun getAllPrices(): Flow<List<PriceEntryEntity>>
 }

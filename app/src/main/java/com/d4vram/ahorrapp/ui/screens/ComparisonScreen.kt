@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,6 +39,9 @@ fun ComparisonScreen(
     val searchQuery = viewModel.searchQuery
     val searchResults by viewModel.searchResults.collectAsState()
     val comparisonPrices by viewModel.comparisonPrices.collectAsState()
+    val isListViewMode = viewModel.isListViewMode
+    val allProducts by viewModel.allProductsComparison.collectAsState()
+    
     val selectedProductInfo = viewModel.selectedProductInfo
     val selectedName = viewModel.selectedProductName
     val focusManager = LocalFocusManager.current
@@ -51,112 +55,192 @@ fun ComparisonScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // --- Header / Search ---
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = {
+                        when {
+                            selectedName != null -> viewModel.clearSelection() // If details shown, go back (to list or search)
+                            isListViewMode && searchQuery.isNotEmpty() -> viewModel.updateSearchQuery("") // Optional: Clear filter if in list mode
+                            else -> onBack() // Exit screen
+                        }
+                    }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.updateSearchQuery(it) },
+                        label = { Text("Buscar producto...") },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+                    )
                 }
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.updateSearchQuery(it) },
-                    label = { Text("Buscar producto...") },
-                    leadingIcon = { Icon(Icons.Default.Search, null) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-                )
+                
+                // Toggle List View Chip
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    FilterChip(
+                        selected = isListViewMode,
+                        onClick = { 
+                            if (selectedName != null) {
+                                viewModel.clearSelection()
+                                // Force list mode if not already
+                                if (!isListViewMode) viewModel.toggleListViewMode()
+                            } else {
+                                viewModel.toggleListViewMode() 
+                            }
+                        },
+                        label = { Text(if (selectedName != null && !isListViewMode) "Ver Lista" else "Modo Lista") },
+                        leadingIcon = { 
+                            Icon(Icons.Default.List, null, tint = if (isListViewMode) MaterialTheme.colorScheme.primary else Color.Gray) 
+                        }
+                    )
+                }
             }
 
-            // --- Product Details & Comparison ---
-            if (selectedName != null) {
+            if (isListViewMode && selectedName == null) {
+                // --- List View Mode ---
+                Text("Productos disponibles", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 
-                // Product Info Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(), 
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (!selectedProductInfo?.imageUrl.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = selectedProductInfo?.imageUrl,
-                            contentDescription = selectedName,
-                            modifier = Modifier
-                                .size(80.dp)
-                                .background(Color.White, RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Fit
-                        )
-                    } else {
-                        // Placeholder
-                        Box(
-                            modifier = Modifier
-                               .size(80.dp)
-                               .background(Color.LightGray, RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = Color.White)
-                        }
-                    }
+                val filteredProducts = if (searchQuery.isBlank()) {
+                    allProducts
+                } else {
+                    allProducts.filterKeys { it.contains(searchQuery, ignoreCase = true) }
+                }
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = selectedName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        selectedProductInfo?.brand?.let { 
-                            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Gray) 
+                if (filteredProducts.isEmpty()) {
+                     Text("No se encontraron productos.", color = Color.Gray)
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredProducts.keys.toList().sorted()) { productName ->
+                             val prices = filteredProducts[productName] ?: emptyList()
+                             val minPrice = prices.minOfOrNull { it.price } ?: 0.0
+                             
+                             Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { 
+                                        viewModel.selectProduct(productName)
+                                        // We don't toggleListViewMode off, we just let selectProduct set selectedName != null
+                                        // ensuring that when we clear selection, we return to this list state.
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                             ) {
+                                 Row(
+                                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                     horizontalArrangement = Arrangement.SpaceBetween,
+                                     verticalAlignment = Alignment.CenterVertically
+                                 ) {
+                                     Column(modifier = Modifier.weight(1f)) {
+                                         Text(productName, fontWeight = FontWeight.SemiBold)
+                                         Text("${prices.size} ofertas", style = MaterialTheme.typography.bodySmall)
+                                     }
+                                     Column(horizontalAlignment = Alignment.End) {
+                                         Text("Desde", style = MaterialTheme.typography.labelSmall)
+                                         Text("%.2f €".format(minPrice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                     }
+                                 }
+                             }
                         }
                     }
                 }
 
-                Text("Comparativa de precios", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-
-                // Prices List (Latest Updates)
-                // Usamos weight(1f) para que ocupe el espacio RESTANTE y no se salga de pantalla
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFCDDC39)), // Lime
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f) 
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            "Últimas actualizaciones", 
-                            style = MaterialTheme.typography.labelLarge, 
-                            color = Color.Black, 
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        
-                        if (comparisonPrices.isEmpty()) {
-                            Text("No hay precios registrados aún.", color = Color.Black)
+            } else {
+                // --- Normal Search/Detail Mode ---
+                // ... (Existing logic for Product Details & Comparison) ...
+                if (selectedName != null) {
+                    
+                    // Product Info Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(), 
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (!selectedProductInfo?.imageUrl.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = selectedProductInfo?.imageUrl,
+                                contentDescription = selectedName,
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .background(Color.White, RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Fit
+                            )
                         } else {
-                            val minPrice = comparisonPrices.minOfOrNull { it.price } ?: 0.0
-
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxSize()
+                            // Placeholder
+                            Box(
+                                modifier = Modifier
+                                   .size(80.dp)
+                                   .background(Color.LightGray, RoundedCornerShape(8.dp)),
+                                contentAlignment = Alignment.Center
                             ) {
-                                items(comparisonPrices) { entry ->
-                                    val isBestPrice = (entry.price == minPrice) && (minPrice > 0.0)
-                                    PriceComparisonCard(entry, isBestPrice, minPrice)
+                                Icon(Icons.Default.Search, contentDescription = null, tint = Color.White)
+                            }
+                        }
+    
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = selectedName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            selectedProductInfo?.brand?.let { 
+                                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Gray) 
+                            }
+                        }
+                    }
+    
+                    Text("Comparativa de precios", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+    
+                    // Prices List (Latest Updates)
+                    // Usamos weight(1f) para que ocupe el espacio RESTANTE y no se salga de pantalla
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFCDDC39)), // Lime
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f) 
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Últimas actualizaciones", 
+                                style = MaterialTheme.typography.labelLarge, 
+                                color = Color.Black, 
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            if (comparisonPrices.isEmpty()) {
+                                Text("No hay precios registrados aún.", color = Color.Black)
+                            } else {
+                                val minPrice = comparisonPrices.minOfOrNull { it.price } ?: 0.0
+    
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    items(comparisonPrices) { entry ->
+                                        val isBestPrice = (entry.price == minPrice) && (minPrice > 0.0)
+                                        PriceComparisonCard(entry, isBestPrice, minPrice)
+                                    }
                                 }
                             }
                         }
                     }
+                } else {
+                     // Empty State message while typing or initial
+                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                         Text("Busca un producto para comparar precios", color = Color.Gray, modifier = Modifier.padding(top = 32.dp))
+                     }
                 }
-            } else {
-                 // Empty State message while typing or initial
-                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                     Text("Busca un producto para comparar precios", color = Color.Gray, modifier = Modifier.padding(top = 32.dp))
-                 }
             }
         }
 
         // --- Suggestions Overlay ---
-        // Z-Index superior natural al estar al final del Box
-        if (searchResults.isNotEmpty() && (selectedName == null || selectedName != searchQuery)) {
-            // Posicionamos justo debajo de la barra de búsqueda (approx padding top 80dp)
-            // Una solución robusta es usar Popup o simplemente padding relativo
+        // Only show if NOT in List Mode and NOT selected logic
+        if (!isListViewMode && searchResults.isNotEmpty() && (selectedName == null || selectedName != searchQuery)) {
+             // ... (Existing suggestions overlay logic) ...
             Box(modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 85.dp, start = 16.dp, end = 16.dp) // Ajuste manual para coincidir con el TextField
+                .padding(top = 135.dp, start = 16.dp, end = 16.dp) // Adjusted padding for new header height with chip
             ) {
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
