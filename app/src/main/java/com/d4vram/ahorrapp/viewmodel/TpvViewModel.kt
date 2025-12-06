@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -28,6 +29,20 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     var productState by mutableStateOf(ProductLookupState())
         private set
+
+    fun observeHistory(): Flow<List<PriceEntryEntity>> = repo.observePriceHistory()
+
+    fun deleteEntry(id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.deletePrice(id)
+        }
+    }
+
+    fun updateEntry(entry: PriceEntryEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.updatePrice(entry)
+        }
+    }
 
     private val _isDarkMode = MutableStateFlow(false)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
@@ -80,7 +95,8 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                     price = price,
                     productName = currentProduct?.name,
                     brand = currentProduct?.brand,
-                    moreInfo = currentProduct?.moreInfo
+                    moreInfo = currentProduct?.moreInfo,
+                    nickname = _currentNickname.value // Enviamos nickname
                 )
             }
         }
@@ -94,69 +110,12 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 price = price,
                 productName = originalEntry.productName,
                 brand = null, 
-                moreInfo = null
+                moreInfo = null,
+                nickname = _currentNickname.value
             )
         }
     }
-
-    fun fetchProduct(barcode: String) {
-        productState = productState.copy(
-            isLoading = true,
-            error = null,
-            product = null
-        )
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val result = runCatching { repo.fetchProduct(barcode) }
-            productState = result.fold(
-                onSuccess = { product ->
-                    if (product == null) {
-                        ProductLookupState(
-                            isLoading = false,
-                            product = null,
-                            error = "Producto no encontrado"
-                        )
-                    } else {
-                        ProductLookupState(
-                            isLoading = false,
-                            product = product,
-                            error = null
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    ProductLookupState(
-                        isLoading = false,
-                        product = null,
-                        error = e.message ?: "No se pudo recuperar el producto"
-                    )
-                }
-            )
-        }
-    }
-
-    fun observeHistory(): Flow<List<PriceEntryEntity>> = repo.observePriceHistory()
-
-    fun overrideProduct(productInfo: ProductInfo) {
-        productState = ProductLookupState(
-            isLoading = false,
-            product = productInfo,
-            error = null
-        )
-    }
-
-    fun deleteEntry(id: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repo.deletePrice(id)
-        }
-    }
-
-    fun updateEntry(entry: PriceEntryEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repo.updatePrice(entry)
-        }
-    }
-
+// ...
     fun syncEntry(entry: PriceEntryEntity, onResult: (Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val success = repo.postPrice(
@@ -165,7 +124,8 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 price = entry.price,
                 productName = entry.productName,
                 brand = null, // Entry doesn't store brand yet, maybe later
-                moreInfo = null // Entry doesn't store moreInfo yet
+                moreInfo = null, // Entry doesn't store moreInfo yet
+                nickname = _currentNickname.value
             )
             launch(Dispatchers.Main) {
                 onResult(success)
@@ -198,6 +158,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                                 
                                 entries.add(
                                     PriceEntryEntity(
+                                        id = 0, // Auto-generate
                                         barcode = barcode,
                                         productName = name,
                                         supermarket = market,
@@ -300,6 +261,25 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+    }
+
+    fun fetchProduct(barcode: String) {
+        viewModelScope.launch {
+            productState = productState.copy(isLoading = true, error = null)
+            val result = runCatching {
+                withContext(Dispatchers.IO) { repo.fetchProduct(barcode) }
+            }.getOrNull()
+
+            productState = productState.copy(
+                isLoading = false,
+                product = result,
+                error = if (result == null) "Producto no encontrado" else null
+            )
+        }
+    }
+
+    fun overrideProduct(info: ProductInfo) {
+        productState = productState.copy(product = info, error = null)
     }
 
     companion object {

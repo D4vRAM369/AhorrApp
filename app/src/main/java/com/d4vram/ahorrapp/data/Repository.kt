@@ -1,6 +1,7 @@
 package com.d4vram.ahorrapp.data
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -12,18 +13,17 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+// Removed unused kotlinx.datetime imports
 
 @Serializable
 data class SupabasePriceEntry(
     val barcode: String,
     val supermarket: String,
     val price: Double,
-    @SerialName("product_name") val productName: String?,
-    val brand: String?,
-    @SerialName("more_info") val moreInfo: String?
+    @SerialName("product_name") val productName: String? = null,
+    val brand: String? = null,
+    @SerialName("more_info") val moreInfo: String? = null,
+    val nickname: String? = null // Campo nuevo para la firma del autor
 )
 
 @Serializable
@@ -59,7 +59,8 @@ class Repository(context: Context) {
         price: Double,
         productName: String?,
         brand: String?,
-        moreInfo: String?
+        moreInfo: String?,
+        nickname: String? // Recibimos el autor
     ): Boolean {
         var remoteSuccess = true
         runCatching {
@@ -70,11 +71,13 @@ class Repository(context: Context) {
                     price = price,
                     productName = productName,
                     brand = brand,
-                    moreInfo = moreInfo
+                    moreInfo = moreInfo,
+                    nickname = nickname
                 )
             )
         }.onFailure { 
             it.printStackTrace()
+            android.util.Log.e("SyncError", "Error uploading price: ${it.message}", it)
             remoteSuccess = false 
         }
 
@@ -133,9 +136,10 @@ class Repository(context: Context) {
         var isActive = true
         var nickname: String? = null
         
-        // Use ISO 8601 format for Timestamptz. Keep it simple as String for now or simple Date default.
-        // Or just let Supabase handle timestamps if we could, but we want to update 'last_used'.
-        val now = java.time.format.DateTimeFormatter.ISO_INSTANT.format(java.time.Instant.now())
+        // Use ISO 8601 format compatible with Timestamptz
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+        val now = sdf.format(java.util.Date())
 
         val result = runCatching {
             // Upsert: We want to insert if new, update last_used if exists.
