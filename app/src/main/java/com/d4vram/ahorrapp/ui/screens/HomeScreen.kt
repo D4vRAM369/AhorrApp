@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -37,14 +40,15 @@ import androidx.compose.material3.SwitchDefaults
 fun HomeScreen(
     onScan: () -> Unit,
     onHistory: () -> Unit,
-    onMyProducts: () -> Unit,
+    onComparison: () -> Unit,
     isDarkMode: Boolean,
     onToggleTheme: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(20.dp)
+            .verticalScroll(androidx.compose.foundation.rememberScrollState()), // Enable scrolling for small screens
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Row(
@@ -57,11 +61,11 @@ fun HomeScreen(
                 contentDescription = "Logo AhorrApp",
                 modifier = Modifier.size(56.dp)
             )
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text("AhorrApp", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text("Escanea, comparte y ahorra en Canarias", style = MaterialTheme.typography.bodyMedium)
             }
-            Spacer(modifier = Modifier.weight(1f))
+            // Switch keeps its size
             Switch(
                 checked = isDarkMode,
                 onCheckedChange = { onToggleTheme() },
@@ -100,18 +104,42 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) { // Weight ensures text fills space but respects button
                     Text("Historial de precios", fontWeight = FontWeight.SemiBold)
                     Text("Revisa tus aportaciones", style = MaterialTheme.typography.bodySmall)
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = onHistory) { Text("Ver historial") }
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f)) // Push footer to bottom
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) { // Weight for responsiveness
+                    Text("Comparador de precios", fontWeight = FontWeight.SemiBold)
+                    Text("Busca y compara ofertas", style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(onClick = onComparison) { 
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Buscar") 
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp)) // Fixed space instead of weight(1f)
 
         Column(
             modifier = Modifier.fillMaxWidth(),

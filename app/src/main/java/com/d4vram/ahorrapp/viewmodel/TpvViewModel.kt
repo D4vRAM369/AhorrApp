@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 
 class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -170,6 +174,65 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 launch(Dispatchers.Main) { onResult(count) }
             }.onFailure {
                 launch(Dispatchers.Main) { onResult(-1) }
+            }
+        }
+    }
+
+    // --- Search & Comparison Logic ---
+
+    var searchQuery by mutableStateOf("")
+        private set
+
+    @OptIn(kotlinx.coroutines.FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val searchResults: StateFlow<List<String>> = androidx.compose.runtime.snapshotFlow { searchQuery }
+        .debounce(300)
+        .flatMapLatest { query ->
+            if (query.isBlank()) kotlinx.coroutines.flow.flowOf(emptyList())
+            else repo.searchProducts(query)
+        }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
+
+    var selectedProductName by mutableStateOf<String?>(null)
+        private set
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val comparisonPrices: StateFlow<List<PriceEntryEntity>> = androidx.compose.runtime.snapshotFlow { selectedProductName }
+        .flatMapLatest { name ->
+            if (name == null) kotlinx.coroutines.flow.flowOf(emptyList())
+            else repo.getProductPrices(name)
+        }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
+
+    var selectedProductInfo by mutableStateOf<ProductInfo?>(null)
+        private set
+
+    fun updateSearchQuery(query: String) {
+        searchQuery = query
+    }
+
+    fun selectProduct(name: String) {
+        searchQuery = name
+        selectedProductName = name
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            // Fetch potential image using barcode from first entry
+            val prices = repo.getProductPrices(name).first()
+            val barcode = prices.firstOrNull()?.barcode
+            
+            if (barcode != null) {
+                // Try fetch full info (image)
+                // Usamos runCatching para evitar crashes si falla la red (ej. sin internet)
+                val info = runCatching { repo.fetchProduct(barcode) }.getOrNull()
+                
+                // If fetch fails (null), we still have the name.
+                // If success, we have image.
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    selectedProductInfo = info ?: ProductInfo(name = name, brand = null)
+                }
+            } else {
+                 kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    selectedProductInfo = ProductInfo(name = name, brand = null)
+                }
             }
         }
     }

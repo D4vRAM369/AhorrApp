@@ -20,4 +20,10 @@ interface PriceDao {
 
     @androidx.room.Update
     suspend fun update(entry: PriceEntryEntity)
+
+    @Query("SELECT DISTINCT productName FROM price_entries WHERE productName LIKE '%' || :query || '%' AND productName IS NOT NULL ORDER BY productName ASC LIMIT 20")
+    fun searchProductNames(query: String): Flow<List<String>>
+
+    @Query("SELECT * FROM price_entries WHERE productName = :productName ORDER BY price ASC")
+    fun getPricesForProduct(productName: String): Flow<List<PriceEntryEntity>>
 }

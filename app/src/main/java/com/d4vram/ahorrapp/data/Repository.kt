@@ -86,10 +86,11 @@ class Repository(context: Context) {
 
         val name = response.product.productName?.trim().orEmpty()
         val brand = response.product.brands?.split(",")?.firstOrNull()?.trim()
+        val imageUrl = response.product.imageUrl
 
         if (name.isEmpty()) return null
 
-        return ProductInfo(name = name, brand = brand)
+        return ProductInfo(name = name, brand = brand, imageUrl = imageUrl)
     }
 
     fun observePriceHistory(): Flow<List<PriceEntryEntity>> = priceDao.observeAll()
@@ -107,4 +108,8 @@ class Repository(context: Context) {
         // For safety and simplicity in this sprint, we loop. Ideally we update Dao.
         entries.forEach { priceDao.insert(it) }
     }
+
+    fun searchProducts(query: String): Flow<List<String>> = priceDao.searchProductNames(query)
+
+    fun getProductPrices(productName: String): Flow<List<PriceEntryEntity>> = priceDao.getPricesForProduct(productName)
 }

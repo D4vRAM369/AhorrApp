@@ -131,4 +131,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:2.3.12")
     // Serialization (necesario para Supabase)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+    // Coil (Image Loading)
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }

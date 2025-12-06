@@ -10,5 +10,6 @@ data class OpenFoodProductResponse(
 
 data class OpenFoodProduct(
     @SerializedName("product_name") val productName: String?,
-    @SerializedName("brands") val brands: String?
+    @SerializedName("brands") val brands: String?,
+    @SerializedName("image_url") val imageUrl: String?
 )

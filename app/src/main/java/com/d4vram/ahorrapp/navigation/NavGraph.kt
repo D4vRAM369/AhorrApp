@@ -32,7 +32,7 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
             HomeScreen(
                 onScan = { nav.navigate("scanner") },
                 onHistory = { nav.navigate("history") },
-                onMyProducts = { nav.navigate("history") },
+                onComparison = { nav.navigate("comparison") },
                 isDarkMode = isDarkMode,
                 onToggleTheme = { viewModel.toggleDarkMode() }
             )
@@ -51,6 +51,13 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
 
         composable("history") {
             HistoryScreen(onSettingsClick = { nav.navigate("profile") })
+        }
+
+        composable("comparison") {
+            com.d4vram.ahorrapp.ui.screens.ComparisonScreen(
+                viewModel = viewModel,
+                onBack = { nav.popBackStack() }
+            )
         }
 
         composable("profile") {
