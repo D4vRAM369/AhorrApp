@@ -135,7 +135,7 @@ fun ComparisonScreen(
                             ) {
                                 items(comparisonPrices) { entry ->
                                     val isBestPrice = (entry.price == minPrice) && (minPrice > 0.0)
-                                    PriceComparisonCard(entry, isBestPrice)
+                                    PriceComparisonCard(entry, isBestPrice, minPrice)
                                 }
                             }
                         }
@@ -188,10 +188,23 @@ fun ComparisonScreen(
 }
 
 @Composable
-fun PriceComparisonCard(entry: PriceEntryEntity, isBestPrice: Boolean) {
+fun PriceComparisonCard(entry: PriceEntryEntity, isBestPrice: Boolean, minPrice: Double) {
+    val priceDiffPercent = if (minPrice > 0) ((entry.price - minPrice) / minPrice) * 100 else 0.0
+    
+    val backgroundColor = when {
+        isBestPrice -> Color(0xFFFFEB3B) // Amarillo (Mejor precio)
+        priceDiffPercent < 10 -> Color(0xFFE3F2FD) // Azul muy claro
+        priceDiffPercent < 20 -> Color(0xFFBBDEFB) // Azul claro
+        priceDiffPercent < 30 -> Color(0xFF64B5F6) // Azul intenso
+        priceDiffPercent < 50 -> Color(0xFFFFCC80) // Naranja claro
+        else -> Color(0xFFEF9A9A) // Rojo claro (Muy caro)
+    }
+
+    val textColor = Color.Black // Generalmente negro va bien con estos pasteles, pero se puede ajustar
+
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (isBestPrice) Color(0xFFFFEB3B) else Color.White // Yellow (Amarillo) vs White
+            containerColor = backgroundColor
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -203,17 +216,17 @@ fun PriceComparisonCard(entry: PriceEntryEntity, isBestPrice: Boolean) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(entry.supermarket, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(entry.supermarket, fontWeight = FontWeight.Bold, color = textColor)
                 val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 Text(dateFormat.format(Date(entry.timestamp)), style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
             }
             
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${entry.price} €", 
+                    text = "%.2f €".format(entry.price), 
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = if (isBestPrice) FontWeight.ExtraBold else FontWeight.Normal,
-                    color = Color.Black
+                    color = textColor
                 )
                 if (isBestPrice) {
                     Text(
@@ -221,6 +234,12 @@ fun PriceComparisonCard(entry: PriceEntryEntity, isBestPrice: Boolean) {
                         color = Color(0xFFF57F17), 
                         style = MaterialTheme.typography.labelSmall, 
                         fontWeight = FontWeight.Bold
+                    )
+                } else {
+                     Text(
+                        "+%.0f%%".format(priceDiffPercent), 
+                        color = Color.DarkGray, 
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
             }

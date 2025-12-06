@@ -1,7 +1,10 @@
 package com.d4vram.ahorrapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
@@ -24,6 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,10 +62,10 @@ fun HistoryScreen(
 ) {
     val history by viewModel.observeHistory().collectAsState(initial = emptyList())
 
-    // States for Dialogs
     var showDeleteDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
     var showEditDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
     var showSyncDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
+    var showAddPriceDialog by remember { mutableStateOf<PriceEntryEntity?>(null) }
     var syncResultInfo by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -73,7 +79,11 @@ fun HistoryScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Historial de precios", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                "Historial de precios",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
             IconButton(onClick = onSettingsClick) {
                 Icon(Icons.Default.Settings, contentDescription = "Ajustes")
             }
@@ -83,7 +93,10 @@ fun HistoryScreen(
 
         if (history.isEmpty()) {
             Spacer(Modifier.height(20.dp))
-            Text("Aún no hay precios guardados. Escanea tu primer producto.", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Aún no hay precios guardados. Escanea tu primer producto.",
+                style = MaterialTheme.typography.bodyMedium
+            )
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(history) { entry ->
@@ -91,7 +104,8 @@ fun HistoryScreen(
                         entry = entry,
                         onDelete = { showDeleteDialog = entry },
                         onEdit = { showEditDialog = entry },
-                        onSync = { showSyncDialog = entry }
+                        onSync = { showSyncDialog = entry },
+                        onAddPrice = { showAddPriceDialog = entry }
                     )
                 }
             }
@@ -100,7 +114,79 @@ fun HistoryScreen(
 
     // --- Dialogs ---
 
-    // 1. Delete Logic (Local only)
+    // Add Price Dialog
+    if (showAddPriceDialog != null) {
+        val entry = showAddPriceDialog!!
+        var newSupermarket by remember { mutableStateOf("") }
+        var newPrice by remember { mutableStateOf("") }
+        var expanded by remember { mutableStateOf(false) }
+        val supermarkets = listOf("Mercadona", "Hiperdino", "SPAR", "Lidl", "Carrefour", "Alcampo", "Aldi")
+
+        AlertDialog(
+            onDismissRequest = { showAddPriceDialog = null },
+            title = { Text("Añadir otro precio") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Producto: ${entry.productName}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+
+                    androidx.compose.foundation.layout.Box {
+                        OutlinedTextField(
+                            value = newSupermarket,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Supermercado") },
+                            trailingIcon = {
+                                IconButton(onClick = { expanded = true }) {
+                                    Icon(Icons.Default.ArrowDropDown, null)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expanded = true }
+                        )
+                        androidx.compose.material3.DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            supermarkets.forEach { s ->
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { Text(s) },
+                                    onClick = { newSupermarket = s; expanded = false }
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = newPrice,
+                        onValueChange = { newPrice = it },
+                        label = { Text("Precio (€)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val p = newPrice.toDoubleOrNull()
+                    if (p != null && newSupermarket.isNotBlank()) {
+                        viewModel.addExtraPrice(entry, newSupermarket, p)
+                        showAddPriceDialog = null
+                    }
+                }) {
+                    Text("Añadir")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddPriceDialog = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // Delete Dialog
     if (showDeleteDialog != null) {
         val entry = showDeleteDialog!!
         AlertDialog(
@@ -124,7 +210,7 @@ fun HistoryScreen(
         )
     }
 
-    // 2. Edit Logic (Update Local)
+    // Edit Dialog
     if (showEditDialog != null) {
         val entry = showEditDialog!!
         var editName by remember { mutableStateOf(entry.productName ?: "") }
@@ -167,13 +253,17 @@ fun HistoryScreen(
         )
     }
 
-    // 3. Sync Logic (Manual Re-sync)
+    // Sync Dialog
     if (showSyncDialog != null) {
         val entry = showSyncDialog!!
         AlertDialog(
             onDismissRequest = { showSyncDialog = null },
             title = { Text("Sincronizar con la nube") },
-            text = { Text("Se sincronizarán los datos actualizados a la nube. Por favor, asegúrate de que sean verídicos.\n\nGracias por tu colaboración: entre todos podemos.") },
+            text = {
+                Text(
+                    "Se sincronizarán los datos actualizados a la nube. Por favor, asegúrate de que sean verídicos.\n\nGracias por tu colaboración: entre todos podemos."
+                )
+            },
             confirmButton = {
                 Button(onClick = {
                     viewModel.syncEntry(entry) { success ->
@@ -190,24 +280,37 @@ fun HistoryScreen(
         )
     }
 
-    // Feedback Snackbar/Alert for Sync Result
+    // Sync result feedback
     if (syncResultInfo != null) {
         AlertDialog(
             onDismissRequest = { syncResultInfo = null },
             text = { Text(syncResultInfo!!) },
-            confirmButton = { TextButton(onClick = { syncResultInfo = null }) { Text("OK") } }
+            confirmButton = {
+                TextButton(onClick = { syncResultInfo = null }) { Text("OK") }
+            }
         )
     }
 }
 
 @Composable
+private fun rememberFormatted(timestamp: Long): String {
+    return remember(timestamp) {
+        val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        formatter.format(Date(timestamp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
 private fun HistoryCard(
     entry: PriceEntryEntity,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    onSync: () -> Unit
+    onSync: () -> Unit,
+    onAddPrice: () -> Unit
 ) {
     val date = rememberFormatted(entry.timestamp)
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
@@ -221,11 +324,17 @@ private fun HistoryCard(
 
             Spacer(Modifier.height(8.dp))
 
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Chip Editar
+                AssistChip(
+                    onClick = onAddPrice,
+                    label = { Text("Añadir precio", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, Modifier.size(16.dp)) },
+                    colors = AssistChipDefaults.assistChipColors(leadingIconContentColor = MaterialTheme.colorScheme.primary)
+                )
+
                 AssistChip(
                     onClick = onEdit,
                     label = { Text("Editar", style = MaterialTheme.typography.labelSmall) },
@@ -233,7 +342,6 @@ private fun HistoryCard(
                     colors = AssistChipDefaults.assistChipColors(leadingIconContentColor = MaterialTheme.colorScheme.primary)
                 )
 
-                // Chip Sincronizar (reemplazado por Sync)
                 AssistChip(
                     onClick = onSync,
                     label = { Text("Sync", style = MaterialTheme.typography.labelSmall) },
@@ -244,8 +352,6 @@ private fun HistoryCard(
                     )
                 )
 
-                // Chip Borrar (más discreto o al final)
-                Spacer(Modifier.weight(1f))
                 AssistChip(
                     onClick = onDelete,
                     label = { Text("Borrar", style = MaterialTheme.typography.labelSmall) },
@@ -259,10 +365,4 @@ private fun HistoryCard(
             }
         }
     }
-}
-
-@Composable
-private fun rememberFormatted(timestamp: Long): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-    return formatter.format(Date(timestamp))
 }

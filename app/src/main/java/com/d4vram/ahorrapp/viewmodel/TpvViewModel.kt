@@ -56,6 +56,19 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun addExtraPrice(originalEntry: PriceEntryEntity, supermarket: String, price: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.postPrice(
+                barcode = originalEntry.barcode,
+                supermarket = supermarket,
+                price = price,
+                productName = originalEntry.productName,
+                brand = null, 
+                moreInfo = null
+            )
+        }
+    }
+
     fun fetchProduct(barcode: String) {
         productState = productState.copy(
             isLoading = true,
