@@ -147,17 +147,43 @@ class Repository(context: Context) {
     }
 
     suspend fun fetchProduct(barcode: String): ProductInfo? {
-        val response = openFoodApi.fetchProduct(barcode)
+        // 1. Intentar con OpenFoodFacts
+        val response = try {
+            openFoodApi.fetchProduct(barcode)
+        } catch (e: Exception) {
+            null
+        }
 
-        if (response.status != 1 || response.product == null) return null
+        if (response != null && response.status == 1 && response.product != null) {
+            val name = response.product.productName?.trim().orEmpty()
+            if (name.isNotEmpty()) {
+                val brand = response.product.brands?.split(",")?.firstOrNull()?.trim()
+                val imageUrl = response.product.imageUrl
+                return ProductInfo(name = name, brand = brand, imageUrl = imageUrl)
+            }
+        }
 
-        val name = response.product.productName?.trim().orEmpty()
-        val brand = response.product.brands?.split(",")?.firstOrNull()?.trim()
-        val imageUrl = response.product.imageUrl
+        // 2. Si falla, intentar buscar en nuestra base de datos (Supabase)
+        // Buscamos si ya existe algún precio registrado para este código, y cogemos su nombre
+        return runCatching {
+            val existingEntry = supabase.from("prices").select {
+                filter {
+                    eq("barcode", barcode)
+                }
+                order("created_at", Order.DESCENDING)
+                limit(1)
+            }.decodeList<SupabasePriceEntry>().firstOrNull()
 
-        if (name.isEmpty()) return null
-
-        return ProductInfo(name = name, brand = brand, imageUrl = imageUrl)
+            if (existingEntry != null && !existingEntry.productName.isNullOrBlank()) {
+                 ProductInfo(
+                    name = existingEntry.productName,
+                    brand = existingEntry.brand,
+                    moreInfo = existingEntry.moreInfo
+                )
+            } else {
+                null
+            }
+        }.getOrNull()
     }
 
     fun observePriceHistory(): Flow<List<PriceEntryEntity>> = priceDao.observeAll()
