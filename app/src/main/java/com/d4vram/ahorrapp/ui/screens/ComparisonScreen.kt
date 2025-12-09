@@ -44,12 +44,20 @@ fun ComparisonScreen(
     val comparisonPrices by viewModel.comparisonPrices.collectAsState()
     val isListViewMode = viewModel.isListViewMode
     val allProducts by viewModel.allProductsComparison.collectAsState()
-    
+    val userFavorites by viewModel.userFavorites.collectAsState()
+
     val selectedProductInfo = viewModel.selectedProductInfo
     val selectedName = viewModel.selectedProductName
     val selectedBarcode = viewModel.selectedProductBarcode
     val focusManager = LocalFocusManager.current
-    val isFavorite = selectedBarcode?.let { viewModel.isProductFavorite(it) } ?: false
+
+    val isFavorite by remember(selectedBarcode, userFavorites) {
+        derivedStateOf {
+            selectedBarcode?.let { barcode ->
+                userFavorites.any { it.barcode == barcode }
+            } ?: false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         
