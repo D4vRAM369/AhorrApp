@@ -35,13 +35,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false // Revertido por fallos con R8
-            // isShrinkResources = false // Desactivado implícitamente al desactivar minify
+            isMinifyEnabled = true // ✅ ACTIVADO con reglas completas
+            isShrinkResources = true // ✅ ACTIVADO para reducir APK
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug") 
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -68,9 +68,48 @@ android {
     }
 }
 
+// ================================
+// 🧪 TASKS DE TESTING PARA OPTIMIZACIÓN
+// ================================
+tasks.register("testOptimizedBuild") {
+    group = "verification"
+    description = "Build optimized APK and show size comparison"
+
+    doLast {
+        println("🚀 Building optimized APK...")
+        exec {
+            workingDir = rootDir
+            commandLine("./gradlew", "assembleRelease")
+        }
+
+        println("📊 APK Size Analysis:")
+        exec {
+            workingDir = rootDir
+            commandLine("ls", "-lh", "app/build/outputs/apk/release/app-release.apk")
+        }
+
+        println("✅ Optimized build completed!")
+        println("📱 Next: Install and test all features manually")
+    }
+}
+
+tasks.register("installOptimized") {
+    group = "verification"
+    description = "Install optimized APK for testing"
+
+    doLast {
+        println("📱 Installing optimized APK...")
+        exec {
+            workingDir = rootDir
+            commandLine("adb", "install", "-r", "app/build/outputs/apk/release/app-release.apk")
+        }
+        println("✅ APK installed! Test all features now.")
+    }
+}
+
 dependencies {
 
-    // Core AndroidX
+// Core AndroidX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 

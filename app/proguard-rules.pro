@@ -5,12 +5,14 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# --- KOTLINX SERIALIZATION ---
+# ===============================
+# 🔥 REGLAS CRÍTICAS PARA TU APP
+# ===============================
+
+# --- KOTLINX SERIALIZATION (SUPABASE) ---
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
 -keep,allowobfuscation,allowshrinking class kotlinx.serialization.* { *; }
-
-# Prevent R8 from stripping Serializer classes for your data classes
 -keepclassmembers class * {
     @kotlinx.serialization.Serializable <init>(...);
 }
@@ -21,15 +23,96 @@
 -dontwarn io.ktor.**
 -dontwarn io.github.jan.supabase.**
 
-# --- ENTITIES ---
-# Keep your data classes from being renamed so Serialization can find fields by name if needed
+# ===============================
+# 📱 ML KIT (BARCODE SCANNING) - CRÍTICO
+# ===============================
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.mlkit.**
+-dontwarn com.google.android.gms.**
+
+# ===============================
+# 📷 CAMERAX - CRÍTICO
+# ===============================
+-keep class androidx.camera.** { *; }
+-keep class androidx.lifecycle.** { *; }
+-dontwarn androidx.camera.**
+-dontwarn androidx.lifecycle.**
+
+# ===============================
+# 🗄️ ROOM DATABASE
+# ===============================
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class *
+-keep @androidx.room.Entity class * { *; }
+-keep class * extends androidx.room.Dao { *; }
+-keep class * extends androidx.room.Database { *; }
+-dontwarn androidx.room.**
+
+# ===============================
+# ⚙️ WORKMANAGER (ALERTAS)
+# ===============================
+-keep class * extends androidx.work.Worker { *; }
+-keep class * extends androidx.work.CoroutineWorker { *; }
+-keep class androidx.work.** { *; }
+-dontwarn androidx.work.**
+
+# ===============================
+# 🖼️ COIL (IMAGE LOADING)
+# ===============================
+-keep class coil.** { *; }
+-dontwarn coil.**
+-dontwarn org.jetbrains.skiko.**
+
+# ===============================
+# 🎨 JETPACK COMPOSE
+# ===============================
+-keep class androidx.compose.** { *; }
+-keep class androidx.compose.runtime.** { *; }
+-dontwarn androidx.compose.**
+-dontwarn androidx.compose.runtime.**
+
+# ===============================
+# 🌐 RETROFIT & OKHTTP
+# ===============================
+-keep class retrofit2.** { *; }
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-dontwarn retrofit2.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# ===============================
+# 📱 TU APP ESPECÍFICA
+# ===============================
+-keep class com.d4vram.ahorrapp.** { *; }
 -keep class com.d4vram.ahorrapp.data.** { *; }
+-keep class com.d4vram.ahorrapp.viewmodel.** { *; }
+-keep class com.d4vram.ahorrapp.ui.screens.** { *; }
+-keep class com.d4vram.ahorrapp.workers.** { *; }
 
-# --- ANDROID COMPONENTS ---
--keepattributes SourceFile,LineNumberTable # Useful for crash reporting
+# ===============================
+# 🛠️ ANDROID GENERAL
+# ===============================
+-keepattributes SourceFile,LineNumberTable,EnclosingMethod,Signature,Exceptions,InnerClasses,Annotation,RuntimeVisibleAnnotations
+-keepattributes *Annotation*
+-keepattributes JavascriptInterface
 
-# --- SLF4J (Ktor logging dependency) ---
--dontwarn org.slf4j.**
--dontnote org.slf4j.**
+# Keep data for enumerated types
+-keepclassmembers enum * { *; }
 
-# --- RETROFIT & GSON rules removed by user request (revert) ---
+# Keep native method names
+-keepclassmembers class * {
+    native <methods>;
+}
+
+# Keep setter and getter methods
+-keepclassmembers class * {
+    void set*(***);
+    *** get*();
+}
+
+# ===============================
+# ⚠️ DEBUGGING (quitar en producción final)
+# ===============================
+-keepattributes SourceFile,LineNumberTable # Para crash reporting mejor
