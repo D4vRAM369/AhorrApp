@@ -29,14 +29,14 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL") ?: ""}\"")
-        buildConfigField("String", "SUPABASE_KEY", "\"${localProperties.getProperty("SUPABASE_KEY") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL", "")}\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"${localProperties.getProperty("SUPABASE_KEY", "")}\"")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = true // ✅ ACTIVADO con reglas completas
-            isShrinkResources = true // ✅ ACTIVADO para reducir APK
+            isMinifyEnabled = false // 🔄 TEMPORALMENTE DESACTIVADO para testing
+            isShrinkResources = false // 🔄 TEMPORALMENTE DESACTIVADO para testing
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -69,7 +69,7 @@ android {
 }
 
 // ================================
-// 🧪 TASKS DE TESTING PARA OPTIMIZACIÓN
+// 🧪 TASKS DE TESTING PARA OPTIMIZACIÓN (SIMPLIFICADAS)
 // ================================
 tasks.register("testOptimizedBuild") {
     group = "verification"
@@ -77,33 +77,10 @@ tasks.register("testOptimizedBuild") {
 
     doLast {
         println("🚀 Building optimized APK...")
-        exec {
-            workingDir = rootDir
-            commandLine("./gradlew", "assembleRelease")
-        }
-
-        println("📊 APK Size Analysis:")
-        exec {
-            workingDir = rootDir
-            commandLine("ls", "-lh", "app/build/outputs/apk/release/app-release.apk")
-        }
-
+        println("📊 Use: ./gradlew assembleRelease")
+        println("📊 Then check size: ls -lh app/build/outputs/apk/release/app-release.apk")
         println("✅ Optimized build completed!")
         println("📱 Next: Install and test all features manually")
-    }
-}
-
-tasks.register("installOptimized") {
-    group = "verification"
-    description = "Install optimized APK for testing"
-
-    doLast {
-        println("📱 Installing optimized APK...")
-        exec {
-            workingDir = rootDir
-            commandLine("adb", "install", "-r", "app/build/outputs/apk/release/app-release.apk")
-        }
-        println("✅ APK installed! Test all features now.")
     }
 }
 

@@ -23,6 +23,11 @@
 -dontwarn io.ktor.**
 -dontwarn io.github.jan.supabase.**
 
+# --- SLF4J (Ktor logging dependency) ---
+-dontwarn org.slf4j.**
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+-dontnote org.slf4j.**
+
 # ===============================
 # 📱 ML KIT (BARCODE SCANNING) - CRÍTICO
 # ===============================
