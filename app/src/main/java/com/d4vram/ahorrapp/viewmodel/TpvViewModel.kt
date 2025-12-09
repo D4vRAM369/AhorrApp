@@ -46,14 +46,20 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var isLoadingExistingPrice by mutableStateOf(false)
         private set
 
+    var fetchError by mutableStateOf<String?>(null)
+        private set
+
 
 
     fun fetchExistingPrice(barcode: String, supermarket: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val cleanBarcode = barcode.trim()
+
+            val cleanMarket = supermarket.trim()
+
             isLoadingExistingPrice = true
             existingPrice = null
-            existingPrice = null 
+            fetchError = null
             
             val resultState = repo.getLatestPriceForBarcode(cleanBarcode, cleanMarket)
             
@@ -61,6 +67,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 existingPrice = entry
             }.onFailure { error ->
                 existingPrice = null
+                fetchError = error.message
                 error.printStackTrace()
             }
             

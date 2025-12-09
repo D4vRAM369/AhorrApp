@@ -207,7 +207,8 @@ fun PriceEntryScreen(
         if (viewModel.isLoadingExistingPrice) {
             Text("Buscando precios recientes...", style = MaterialTheme.typography.bodySmall)
         } else {
-            viewModel.existingPrice?.let { existing ->
+            if (viewModel.existingPrice != null) {
+                val existing = viewModel.existingPrice!!
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer
@@ -234,6 +235,22 @@ fun PriceEntryScreen(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
+            } else if (viewModel.fetchError != null) {
+                Text(
+                    "Error al buscar precio: ${viewModel.fetchError}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                 val currentMarket = if (selectedSupermarket == "Otro") customSupermarket else selectedSupermarket
+                 if (currentMarket.isNotBlank()) {
+                     Text(
+                         "No se encontró precio previo en $currentMarket",
+                         style = MaterialTheme.typography.bodySmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                     )
+                 }
             }
         }
 

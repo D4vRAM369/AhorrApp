@@ -69,7 +69,7 @@ class Repository(context: Context) {
         // Configuración tolerante a fallos para el JSON
         defaultSerializer = KotlinXSerializer(Json {
             ignoreUnknownKeys = true // ¡CRUCIAL! Ignora campos extra que mande Supabase
-            encodeDefaults = true
+            encodeDefaults = false
         })
 
         install(Postgrest)
