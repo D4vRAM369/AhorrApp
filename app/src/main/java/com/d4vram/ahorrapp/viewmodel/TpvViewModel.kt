@@ -49,6 +49,11 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var fetchError by mutableStateOf<String?>(null)
         private set
 
+    init {
+        loadUserFavorites()
+        loadUserAlerts()
+    }
+
 
 
     fun fetchExistingPrice(barcode: String, supermarket: String) {
