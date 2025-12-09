@@ -120,33 +120,6 @@ fun HomeScreen(
         }
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)), // Naranja claro
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Productos favoritos", fontWeight = FontWeight.SemiBold)
-                    Text("Alertas de precios", style = MaterialTheme.typography.bodySmall)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onFavorites,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
-                ) {
-                    Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Favoritos")
-                }
-            }
-        }
-
-        Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
@@ -166,6 +139,33 @@ fun HomeScreen(
                     Icon(imageVector = Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Buscar") 
+                }
+            }
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Productos favoritos", fontWeight = FontWeight.SemiBold)
+                    Text("Alertas de precios", style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = onFavorites,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Favoritos")
                 }
             }
         }
