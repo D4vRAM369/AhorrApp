@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,6 +82,7 @@ fun PriceEntryScreen(
     Column(Modifier.padding(24.dp)) {
 
         Text("Código escaneado: $barcode")
+
 
         Spacer(Modifier.height(20.dp))
 
@@ -180,7 +183,61 @@ fun PriceEntryScreen(
 
 
 
-        Spacer(Modifier.height(40.dp))
+
+        // Fetch existing price when Supermarket or Barcode changes
+        LaunchedEffect(selectedSupermarket, customSupermarket, barcode) {
+            if (barcode.isNotEmpty()) {
+                val market = if (selectedSupermarket == "Otro") customSupermarket.trim() else selectedSupermarket
+                if (market.isNotBlank()) {
+                    viewModel.fetchExistingPrice(barcode, market)
+                }
+            }
+        }
+
+        // Pre-fill price when existing price is found
+        LaunchedEffect(viewModel.existingPrice) {
+            viewModel.existingPrice?.let {
+                price = it.price.toString()
+            }
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        // Show existing price info
+        if (viewModel.isLoadingExistingPrice) {
+            Text("Buscando precios recientes...", style = MaterialTheme.typography.bodySmall)
+        } else {
+            viewModel.existingPrice?.let { existing ->
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            "Precio existente encontrado:",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text("Último precio: ${existing.price}€")
+                        existing.createdAt?.let { date ->
+                            // Simple formatting
+                            val dateStr = try {
+                                date.split("T")[0].split("-").reversed().joinToString("/")
+                            } catch (e: Exception) { date }
+                            Text("Fecha: $dateStr")
+                        }
+                        if (existing.nickname != null) {
+                            Text("Por: ${existing.nickname}", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+        }
+
+        Spacer(Modifier.height(20.dp))
 
         Button(
             modifier = Modifier.fillMaxWidth(),
@@ -200,7 +257,7 @@ fun PriceEntryScreen(
                 onDone()
             }
         ) {
-            Text("Guardar precio")
+            Text(if (viewModel.existingPrice != null) "Actualizar precio" else "Guardar precio")
         }
 
         Spacer(Modifier.height(12.dp))

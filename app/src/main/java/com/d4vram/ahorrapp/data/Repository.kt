@@ -1,5 +1,6 @@
 package com.d4vram.ahorrapp.data
-
+import io.github.jan.supabase.serializer.KotlinXSerializer
+import kotlinx.serialization.json.Json
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
@@ -14,9 +15,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // Removed unused kotlinx.datetime imports
+import io.github.jan.supabase.postgrest.query.Order
 
 @Serializable
 data class SupabasePriceEntry(
+    val id: Long? = null, // Added to avoid strict parsing errors
     val barcode: String,
     val supermarket: String,
     val price: Double,
@@ -63,7 +66,17 @@ class Repository(context: Context) {
         supabaseUrl = BuildConfig.SUPABASE_URL,
         supabaseKey = BuildConfig.SUPABASE_KEY
     ) {
+        // Configuración tolerante a fallos para el JSON
+        defaultSerializer = KotlinXSerializer(Json {
+            ignoreUnknownKeys = true // ¡CRUCIAL! Ignora campos extra que mande Supabase
+            encodeDefaults = true
+        })
+
         install(Postgrest)
+    }
+
+    init {
+        Log.e("SupabaseConfig", "URL: ${BuildConfig.SUPABASE_URL}")
     }
 
     private val openFoodApi = Retrofit.Builder()
@@ -97,10 +110,10 @@ class Repository(context: Context) {
                     nickname = nickname
                 )
             )
-        }.onFailure { 
+        }.onFailure {
             it.printStackTrace()
             android.util.Log.e("SyncError", "Error uploading price: ${it.message}", it)
-            remoteSuccess = false 
+            remoteSuccess = false
         }
 
         priceDao.insert(
@@ -113,7 +126,24 @@ class Repository(context: Context) {
             )
         )
 
-        return remoteSuccess
+    return remoteSuccess
+    }
+
+    suspend fun getLatestPriceForBarcode(
+        barcode: String,
+        supermarket: String
+    ): Result<SupabasePriceEntry?> {
+        return runCatching {
+            val result = supabase.from("prices").select {
+                filter {
+                    eq("barcode", barcode)
+                    eq("supermarket", supermarket)
+                }
+                order("created_at", Order.DESCENDING)
+                limit(1)
+            }.decodeList<SupabasePriceEntry>().firstOrNull()
+            result
+        }
     }
 
     suspend fun fetchProduct(barcode: String): ProductInfo? {

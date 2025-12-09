@@ -12,6 +12,7 @@ import com.d4vram.ahorrapp.data.ProductInfo
 import com.d4vram.ahorrapp.data.Repository
 import com.d4vram.ahorrapp.data.UserFavorite
 import com.d4vram.ahorrapp.data.PriceAlert
+import com.d4vram.ahorrapp.data.SupabasePriceEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,34 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     var productState by mutableStateOf(ProductLookupState())
         private set
+
+    var existingPrice by mutableStateOf<SupabasePriceEntry?>(null)
+        private set
+
+    var isLoadingExistingPrice by mutableStateOf(false)
+        private set
+
+
+
+    fun fetchExistingPrice(barcode: String, supermarket: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val cleanBarcode = barcode.trim()
+            isLoadingExistingPrice = true
+            existingPrice = null
+            existingPrice = null 
+            
+            val resultState = repo.getLatestPriceForBarcode(cleanBarcode, cleanMarket)
+            
+            resultState.onSuccess { entry ->
+                existingPrice = entry
+            }.onFailure { error ->
+                existingPrice = null
+                error.printStackTrace()
+            }
+            
+            isLoadingExistingPrice = false
+        }
+    }
 
     fun observeHistory(): Flow<List<PriceEntryEntity>> = repo.observePriceHistory()
 
