@@ -37,6 +37,11 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = Repository(application.applicationContext)
 
+    // Store Device ID - Moved up to avoid NPE in init
+    private val deviceId: String by lazy {
+        android.provider.Settings.Secure.getString(application.contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "unknown_device"
+    }
+
     var productState by mutableStateOf(ProductLookupState())
         private set
 
@@ -49,19 +54,10 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var fetchError by mutableStateOf<String?>(null)
         private set
 
-    init {
-        loadUserFavorites()
-        loadUserAlerts()
-    }
-
-
-
     fun fetchExistingPrice(barcode: String, supermarket: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val cleanBarcode = barcode.trim()
-
             val cleanMarket = supermarket.trim()
-
             isLoadingExistingPrice = true
             existingPrice = null
             fetchError = null
@@ -110,10 +106,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     private val _showOnboarding = MutableStateFlow(true)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
     
-    // Store Device ID
-    private val deviceId: String by lazy {
-        android.provider.Settings.Secure.getString(application.contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "unknown_device"
-    }
+    // deviceId is already declared at the top of the class
 
     init {
         checkLicense()

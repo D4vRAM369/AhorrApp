@@ -7,10 +7,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,7 +69,7 @@ fun ComparisonScreen(
                             else -> onBack() // Exit screen
                         }
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                     OutlinedTextField(
                         value = searchQuery,
@@ -97,7 +98,7 @@ fun ComparisonScreen(
                         },
                         label = { Text(if (selectedName != null && !isListViewMode) "Ver Lista" else "Modo Lista") },
                         leadingIcon = { 
-                            Icon(Icons.Default.List, null, tint = if (isListViewMode) MaterialTheme.colorScheme.primary else Color.Gray) 
+                            Icon(Icons.AutoMirrored.Filled.List, null, tint = if (isListViewMode) MaterialTheme.colorScheme.primary else Color.Gray) 
                         }
                     )
                 }
@@ -285,7 +286,7 @@ fun ComparisonScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(text = product, style = MaterialTheme.typography.bodyLarge)
                             }
-                            Divider(color = Color.LightGray.copy(alpha = 0.5f))
+                            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                         }
                     }
                 }

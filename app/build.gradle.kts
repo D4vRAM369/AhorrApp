@@ -117,14 +117,15 @@ dependencies {
     // 🔥 Dependencias opcionales para tu proyecto AhorrApp:
     // -----------------------------------------
 
-     //ML Kit (lector de códigos de barras)
-    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+    //ML Kit (lector de códigos de barras)
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
 
     // CameraX
-    implementation("androidx.camera:camera-core:1.3.0")
-    implementation("androidx.camera:camera-camera2:1.3.0")
-    implementation("androidx.camera:camera-lifecycle:1.3.0")
-    implementation("androidx.camera:camera-view:1.3.0")
+    val camera_version = "1.4.1"
+    implementation("androidx.camera:camera-core:$camera_version")
+    implementation("androidx.camera:camera-camera2:$camera_version")
+    implementation("androidx.camera:camera-lifecycle:$camera_version")
+    implementation("androidx.camera:camera-view:$camera_version")
     implementation("com.google.guava:guava:31.1-android") // Prevent crash on some devices
 
     // Retrofit + Gson
