@@ -16,8 +16,6 @@
 
 ---
 
-[🌍 English version](README_english.md) <!-- Placeholder si se crea en el futuro -->
-
 ## ✨ Nuevo en v1.0 (MVP)
 
 * **Comparador de Precios Inteligente**: Visualización térmica de precios (sistema de colores tipo semáforo) para identificar de un vistazo las mejores ofertas entre supermercados de Canarias.
@@ -44,8 +42,24 @@
    * Haz copias de seguridad de tus registros.
 
 ---
-
-## ⚙️ Arquitectura & Stack
+ 
+ ## 🛠️ Configuración de Desarrollo
+ 
+ Para compilar y ejecutar este proyecto, necesitas configurar las credenciales de Supabase:
+ 
+ 1. Crea un archivo `local.properties` en la raíz del proyecto (si no existe).
+ 2. Agrega tus claves de Supabase (puedes obtenerlas siguiendo `supabase_setup.md`):
+ 
+ ```properties
+ SUPABASE_URL="https://tu-proyecto.supabase.co"
+ SUPABASE_KEY="tu-anon-key-publica"
+ ```
+ 
+ > **Nota**: El archivo `local.properties` está excluido de git por seguridad. Nunca subas tus claves reales al repositorio.
+ 
+ ---
+ 
+ ## ⚙️ Arquitectura & Stack
 
 Este proyecto demuestra una arquitectura **MVVM (Model-View-ViewModel)** robusta y escalable:
 

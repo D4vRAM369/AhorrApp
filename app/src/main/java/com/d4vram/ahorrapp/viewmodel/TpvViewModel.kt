@@ -56,6 +56,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _currentNickname = MutableStateFlow("Usuario Anónimo")
     val currentNickname: StateFlow<String> = _currentNickname.asStateFlow()
+
+    private val _showOnboarding = MutableStateFlow(true)
+    val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
     
     // Store Device ID
     private val deviceId: String by lazy {
@@ -64,6 +67,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         checkLicense()
+        loadOnboardingState()
     }
 
     private fun checkLicense() {
@@ -80,6 +84,22 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.updateNickname(deviceId, newName)
             _currentNickname.value = newName
+        }
+    }
+
+    private fun loadOnboardingState() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            val hasCompletedOnboarding = prefs.getBoolean("onboarding_completed", false)
+            _showOnboarding.value = !hasCompletedOnboarding
+        }
+    }
+
+    fun completeOnboarding() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putBoolean("onboarding_completed", true).apply()
+            _showOnboarding.value = false
         }
     }
     

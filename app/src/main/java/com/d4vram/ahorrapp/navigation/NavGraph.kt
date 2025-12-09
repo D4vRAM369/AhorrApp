@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.d4vram.ahorrapp.ui.screens.HistoryScreen
 import com.d4vram.ahorrapp.ui.screens.HomeScreen
+import com.d4vram.ahorrapp.ui.screens.OnboardingScreen
 import com.d4vram.ahorrapp.ui.screens.PriceEntryScreen
 import com.d4vram.ahorrapp.ui.screens.ScannerScreen
 import com.d4vram.ahorrapp.ui.screens.WelcomeScreen
@@ -23,6 +24,8 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
     // --- SOLUTION ---
     // Move the LaunchedEffect here, into the Composable scope of NavGraph
     val isLocked by viewModel.isAppLocked.collectAsState()
+    val showOnboarding by viewModel.showOnboarding.collectAsState()
+
     LaunchedEffect(isLocked) {
         if (isLocked) {
             nav.navigate("lock") {
@@ -33,8 +36,25 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
 
     NavHost(
         navController = nav,
-        startDestination = "welcome"
+        startDestination = if (showOnboarding) "onboarding" else "welcome"
     ) {
+
+        composable("onboarding") {
+            OnboardingScreen(
+                onFinish = {
+                    viewModel.completeOnboarding()
+                    nav.navigate("welcome") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                },
+                onSkip = {
+                    viewModel.completeOnboarding()
+                    nav.navigate("welcome") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable("welcome") {
             WelcomeScreen(onContinue = { nav.navigate("home") })
