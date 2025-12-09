@@ -12,34 +12,54 @@
 # --- KOTLINX SERIALIZATION (SUPABASE) ---
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
--keep,allowobfuscation,allowshrinking class kotlinx.serialization.* { *; }
+-keep,allowobfuscation,allowshrinking class kotlinx.serialization.** { *; }
 -keepclassmembers class * {
     @kotlinx.serialization.Serializable <init>(...);
+    @kotlinx.serialization.SerialName <fields>;
 }
 
 # --- SUPABASE & KTOR ---
 -keep class io.ktor.** { *; }
 -keep class io.github.jan.supabase.** { *; }
+-keep class org.jetbrains.kotlinx.** { *; }
 -dontwarn io.ktor.**
 -dontwarn io.github.jan.supabase.**
+-dontwarn org.jetbrains.kotlinx.**
 
 # --- SLF4J (Ktor logging dependency) ---
 -dontwarn org.slf4j.**
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontnote org.slf4j.**
 
+# --- GSON (Retrofit) ---
+-keepattributes Signature, InnerClasses, EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+-keepattributes AnnotationDefault
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+-dontwarn javax.annotation.**
+-dontwarn kotlin.Unit
+-dontwarn retrofit2.KotlinExtensions
+-dontwarn retrofit2.KotlinExtensions$*
+
 # ===============================
 # 📱 ML KIT (BARCODE SCANNING) - CRÍTICO
 # ===============================
 -keep class com.google.mlkit.** { *; }
 -keep class com.google.android.gms.** { *; }
+-keep class com.google.firebase.** { *; }
 -dontwarn com.google.mlkit.**
 -dontwarn com.google.android.gms.**
+-dontwarn com.google.firebase.**
 
 # ===============================
 # 📷 CAMERAX - CRÍTICO
 # ===============================
 -keep class androidx.camera.** { *; }
+-keep class androidx.camera.core.** { *; }
+-keep class androidx.camera.lifecycle.** { *; }
 -keep class androidx.lifecycle.** { *; }
 -dontwarn androidx.camera.**
 -dontwarn androidx.lifecycle.**
@@ -52,6 +72,8 @@
 -keep @androidx.room.Entity class * { *; }
 -keep class * extends androidx.room.Dao { *; }
 -keep class * extends androidx.room.Database { *; }
+-keep class * extends androidx.room.RoomOpenHelper { *; }
+-keep class androidx.room.** { *; }
 -dontwarn androidx.room.**
 
 # ===============================
@@ -59,13 +81,17 @@
 # ===============================
 -keep class * extends androidx.work.Worker { *; }
 -keep class * extends androidx.work.CoroutineWorker { *; }
+-keep class * extends androidx.work.ListenableWorker { *; }
 -keep class androidx.work.** { *; }
+-keep class androidx.work.impl.** { *; }
 -dontwarn androidx.work.**
 
 # ===============================
 # 🖼️ COIL (IMAGE LOADING)
 # ===============================
 -keep class coil.** { *; }
+-keep class coil.request.** { *; }
+-keep class coil.decode.** { *; }
 -dontwarn coil.**
 -dontwarn org.jetbrains.skiko.**
 
@@ -74,8 +100,15 @@
 # ===============================
 -keep class androidx.compose.** { *; }
 -keep class androidx.compose.runtime.** { *; }
+-keep class androidx.compose.ui.** { *; }
+-keep class androidx.compose.material3.** { *; }
+-keep class androidx.compose.foundation.** { *; }
+-keep class androidx.compose.animation.** { *; }
 -dontwarn androidx.compose.**
 -dontwarn androidx.compose.runtime.**
+-dontwarn androidx.compose.ui.**
+-dontwarn androidx.compose.material3.**
+-dontwarn androidx.compose.foundation.**
 
 # ===============================
 # 🌐 RETROFIT & OKHTTP
@@ -83,9 +116,23 @@
 -keep class retrofit2.** { *; }
 -keep class okhttp3.** { *; }
 -keep class okio.** { *; }
+-keep class com.squareup.okhttp3.** { *; }
 -dontwarn retrofit2.**
 -dontwarn okhttp3.**
 -dontwarn okio.**
+-dontwarn com.squareup.okhttp3.**
+
+# ===============================
+# 📱 ANDROIDX CORE
+# ===============================
+-keep class androidx.core.** { *; }
+-keep class androidx.activity.** { *; }
+-keep class androidx.fragment.** { *; }
+-keep class androidx.appcompat.** { *; }
+-dontwarn androidx.core.**
+-dontwarn androidx.activity.**
+-dontwarn androidx.fragment.**
+-dontwarn androidx.appcompat.**
 
 # ===============================
 # 📱 TU APP ESPECÍFICA
@@ -95,6 +142,23 @@
 -keep class com.d4vram.ahorrapp.viewmodel.** { *; }
 -keep class com.d4vram.ahorrapp.ui.screens.** { *; }
 -keep class com.d4vram.ahorrapp.workers.** { *; }
+-keep class com.d4vram.ahorrapp.navigation.** { *; }
+
+# Mantener BuildConfig
+-keep class com.d4vram.ahorrapp.BuildConfig { *; }
+
+# Mantener MainActivity y TpvApp
+-keep class com.d4vram.ahorrapp.MainActivity { *; }
+-keep class com.d4vram.ahorrapp.TpvApp { *; }
+
+# Mantener data classes serializables
+-keep class com.d4vram.ahorrapp.data.** {
+    *;
+}
+
+# Mantener ViewModels
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+-keep class * extends androidx.lifecycle.AndroidViewModel { *; }
 
 # ===============================
 # 🛠️ ANDROID GENERAL
@@ -118,6 +182,23 @@
 }
 
 # ===============================
+# 🔧 CONFIGURACIÓN OPTIMIZACIÓN
+# ===============================
+# Optimizaciones agresivas pero seguras
+-optimizationpasses 5
+-allowaccessmodification
+-dontpreverify
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+
+# ===============================
 # ⚠️ DEBUGGING (quitar en producción final)
 # ===============================
 -keepattributes SourceFile,LineNumberTable # Para crash reporting mejor
+
+# ===============================
+# 📊 REPORTING (útil durante desarrollo)
+# ===============================
+-printconfiguration "build/outputs/mapping/configuration.txt"
+-printusage "build/outputs/mapping/usage.txt"
+-printseeds "build/outputs/mapping/seeds.txt"

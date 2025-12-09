@@ -35,8 +35,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false // 🔄 TEMPORALMENTE DESACTIVADO para testing
-            isShrinkResources = false // 🔄 TEMPORALMENTE DESACTIVADO para testing
+            isMinifyEnabled = true // ✅ ACTIVADO - Ofusca y reduce código
+            isShrinkResources = true // ✅ ACTIVADO - Elimina recursos no usados
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
