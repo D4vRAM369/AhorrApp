@@ -28,6 +28,8 @@ import androidx.compose.ui.text.input.ImeAction
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +46,9 @@ fun ComparisonScreen(
     
     val selectedProductInfo = viewModel.selectedProductInfo
     val selectedName = viewModel.selectedProductName
+    val selectedBarcode = viewModel.selectedProductBarcode
     val focusManager = LocalFocusManager.current
+    val isFavorite = selectedBarcode?.let { viewModel.isProductFavorite(it) } ?: false
 
     Box(modifier = Modifier.fillMaxSize()) {
         
@@ -156,7 +160,7 @@ fun ComparisonScreen(
                     
                     // Product Info Header
                     Row(
-                        modifier = Modifier.fillMaxWidth(), 
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -173,19 +177,38 @@ fun ComparisonScreen(
                             // Placeholder
                             Box(
                                 modifier = Modifier
-                                   .size(80.dp)
-                                   .background(Color.LightGray, RoundedCornerShape(8.dp)),
+                                    .size(80.dp)
+                                    .background(Color.LightGray, RoundedCornerShape(8.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Search, contentDescription = null, tint = Color.White)
                             }
                         }
-    
+
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = selectedName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            selectedProductInfo?.brand?.let { 
-                                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Gray) 
+                            selectedProductInfo?.brand?.let {
+                                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                             }
+                        }
+
+                        // Botón de favorito
+                        IconButton(
+                            onClick = {
+                                selectedBarcode?.let { barcode ->
+                                    if (isFavorite) {
+                                        viewModel.removeFromFavorites(barcode)
+                                    } else {
+                                        viewModel.addToFavorites(barcode, selectedProductInfo?.name ?: selectedName)
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (isFavorite) "Quitar de favoritos" else "Añadir a favoritos",
+                                tint = if (isFavorite) Color.Red else Color.Gray
+                            )
                         }
                     }
     

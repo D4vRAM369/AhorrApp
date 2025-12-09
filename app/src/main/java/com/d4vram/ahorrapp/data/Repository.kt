@@ -23,15 +23,37 @@ data class SupabasePriceEntry(
     @SerialName("product_name") val productName: String? = null,
     val brand: String? = null,
     @SerialName("more_info") val moreInfo: String? = null,
-    val nickname: String? = null // Campo nuevo para la firma del autor
+    val nickname: String? = null, // Campo nuevo para la firma del autor
+    @SerialName("created_at") val createdAt: String? = null
 )
 
 @Serializable
 data class DeviceLicense(
     @SerialName("device_id") val deviceId: String,
-    @SerialName("is_active") val isActive: Boolean = true,
+    val isActive: Boolean = true,
     @SerialName("nickname") val nickname: String? = null,
     @SerialName("last_used_at") val lastUsedAt: String? = null
+)
+
+@Serializable
+data class UserFavorite(
+    val id: Long? = null,
+    @SerialName("device_id") val deviceId: String,
+    @SerialName("barcode") val barcode: String,
+    @SerialName("product_name") val productName: String? = null,
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
+data class PriceAlert(
+    val id: Long? = null,
+    @SerialName("device_id") val deviceId: String,
+    @SerialName("barcode") val barcode: String,
+    @SerialName("target_price") val targetPrice: Double? = null,
+    @SerialName("alert_percentage") val alertPercentage: Double = 10.0,
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("last_alert_at") val lastAlertAt: String? = null
 )
 
 class Repository(context: Context) {
@@ -195,5 +217,201 @@ class Repository(context: Context) {
                 filter { eq("device_id", deviceId) }
             }
         }
+    }
+
+    // --- FUNCIONES PARA SISTEMA DE ALERTAS ---
+
+    suspend fun addToFavorites(deviceId: String, barcode: String, productName: String?): Boolean {
+        return runCatching {
+            supabase.from("user_favorites").insert(
+                UserFavorite(
+                    deviceId = deviceId,
+                    barcode = barcode,
+                    productName = productName
+                )
+            )
+            true
+        }.getOrDefault(false)
+    }
+
+    suspend fun removeFromFavorites(deviceId: String, barcode: String): Boolean {
+        return runCatching {
+            supabase.from("user_favorites").delete {
+                filter {
+                    eq("device_id", deviceId)
+                    eq("barcode", barcode)
+                }
+            }
+            true
+        }.getOrDefault(false)
+    }
+
+    suspend fun getUserFavorites(deviceId: String): List<UserFavorite> {
+        return runCatching {
+            supabase.from("user_favorites").select {
+                filter { eq("device_id", deviceId) }
+            }.decodeList<UserFavorite>()
+        }.getOrDefault(emptyList())
+    }
+
+    suspend fun isProductFavorite(deviceId: String, barcode: String): Boolean {
+        return runCatching {
+            val result = supabase.from("user_favorites").select {
+                filter {
+                    eq("device_id", deviceId)
+                    eq("barcode", barcode)
+                }
+            }.decodeSingleOrNull<UserFavorite>()
+            result != null
+        }.getOrDefault(false)
+    }
+
+    suspend fun createOrUpdatePriceAlert(
+        deviceId: String,
+        barcode: String,
+        targetPrice: Double? = null,
+        alertPercentage: Double = 10.0
+    ): Boolean {
+        return runCatching {
+            // Primero intentamos actualizar si ya existe
+            val existing = supabase.from("price_alerts").select {
+                filter {
+                    eq("device_id", deviceId)
+                    eq("barcode", barcode)
+                }
+            }.decodeSingleOrNull<PriceAlert>()
+
+            if (existing != null) {
+                // Update existing
+                supabase.from("price_alerts").update(
+                    {
+                        set("target_price", targetPrice)
+                        set("alert_percentage", alertPercentage)
+                        set("is_active", true)
+                    }
+                ) {
+                    filter {
+                        eq("device_id", deviceId)
+                        eq("barcode", barcode)
+                    }
+                }
+            } else {
+                // Create new
+                supabase.from("price_alerts").insert(
+                    PriceAlert(
+                        deviceId = deviceId,
+                        barcode = barcode,
+                        targetPrice = targetPrice,
+                        alertPercentage = alertPercentage
+                    )
+                )
+            }
+            true
+        }.getOrDefault(false)
+    }
+
+    suspend fun getUserAlerts(deviceId: String): List<PriceAlert> {
+        return runCatching {
+            supabase.from("price_alerts").select {
+                filter {
+                    eq("device_id", deviceId)
+                    eq("is_active", true)
+                }
+            }.decodeList<PriceAlert>()
+        }.getOrDefault(emptyList())
+    }
+
+    suspend fun updateLastAlertTime(deviceId: String, barcode: String) {
+        runCatching {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+            sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            val now = sdf.format(java.util.Date())
+
+            supabase.from("price_alerts").update(
+                {
+                    set("last_alert_at", now)
+                }
+            ) {
+                filter {
+                    eq("device_id", deviceId)
+                    eq("barcode", barcode)
+                }
+            }
+        }
+    }
+
+    suspend fun checkPriceAlerts(): List<Triple<PriceAlert, SupabasePriceEntry, Double>> {
+        // Esta función busca alertas que necesiten notificación
+        // Devuelve: (Alert, LatestPrice, PriceDropPercentage)
+
+        val alertsToNotify = mutableListOf<Triple<PriceAlert, SupabasePriceEntry, Double>>()
+
+        try {
+            // Obtener todas las alertas activas
+            val allAlerts = supabase.from("price_alerts").select {
+                filter { eq("is_active", true) }
+            }.decodeList<PriceAlert>()
+
+            for (alert in allAlerts) {
+                // Buscar el precio más reciente para este producto
+                val latestPrice = supabase.from("prices").select {
+                    filter { eq("barcode", alert.barcode) }
+                }.decodeList<SupabasePriceEntry>()
+                    .minByOrNull { it.createdAt ?: "" } // Más reciente primero
+
+                if (latestPrice != null) {
+                    val currentPrice = latestPrice.price
+
+                    // Verificar si cumple con criterios de alerta
+                    val shouldAlert = when {
+                        // Si hay precio objetivo y el precio actual es menor o igual
+                        alert.targetPrice != null && currentPrice <= alert.targetPrice!! -> true
+                        // Si hay porcentaje de bajada configurado
+                        else -> {
+                            // Buscar el precio anterior (penúltimo más reciente)
+                            val previousPrices = supabase.from("prices").select {
+                                filter { eq("barcode", alert.barcode) }
+                            }.decodeList<SupabasePriceEntry>()
+                                .sortedByDescending { it.createdAt ?: "" }
+                                .drop(1) // Saltar el más reciente
+
+                            if (previousPrices.isNotEmpty()) {
+                                val previousPrice = previousPrices.first().price
+                                val dropPercentage = ((previousPrice - currentPrice) / previousPrice) * 100
+                                dropPercentage >= alert.alertPercentage
+                            } else {
+                                false // No hay precio anterior para comparar
+                            }
+                        }
+                    }
+
+                    if (shouldAlert) {
+                        val dropPercentage = if (alert.targetPrice != null) {
+                            ((alert.targetPrice!! - currentPrice) / alert.targetPrice!!) * 100
+                        } else {
+                            // Calcular basado en último precio conocido
+                            val previousPrices = supabase.from("prices").select {
+                                filter { eq("barcode", alert.barcode) }
+                            }.decodeList<SupabasePriceEntry>()
+                                .sortedByDescending { it.createdAt ?: "" }
+                                .drop(1)
+
+                            if (previousPrices.isNotEmpty()) {
+                                val previousPrice = previousPrices.first().price
+                                ((previousPrice - currentPrice) / previousPrice) * 100
+                            } else {
+                                0.0
+                            }
+                        }
+
+                        alertsToNotify.add(Triple(alert, latestPrice, dropPercentage))
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return alertsToNotify
     }
 }

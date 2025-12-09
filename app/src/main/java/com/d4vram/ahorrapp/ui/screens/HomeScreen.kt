@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +31,7 @@ import com.d4vram.ahorrapp.R
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Search
@@ -41,6 +44,7 @@ fun HomeScreen(
     onScan: () -> Unit,
     onHistory: () -> Unit,
     onComparison: () -> Unit,
+    onFavorites: () -> Unit,
     isDarkMode: Boolean,
     onToggleTheme: () -> Unit
 ) {
@@ -112,6 +116,33 @@ fun HomeScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = onHistory) { Text("Ver historial") }
+            }
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)), // Naranja claro
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Productos favoritos", fontWeight = FontWeight.SemiBold)
+                    Text("Alertas de precios", style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = onFavorites,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
+                ) {
+                    Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Favoritos")
+                }
             }
         }
 

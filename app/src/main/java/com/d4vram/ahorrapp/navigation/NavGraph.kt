@@ -11,6 +11,7 @@ import com.d4vram.ahorrapp.ui.screens.OnboardingScreen
 import com.d4vram.ahorrapp.ui.screens.PriceEntryScreen
 import com.d4vram.ahorrapp.ui.screens.ScannerScreen
 import com.d4vram.ahorrapp.ui.screens.WelcomeScreen
+import com.d4vram.ahorrapp.ui.screens.FavoritesScreen
 import com.d4vram.ahorrapp.ui.screens.LockScreen
 import androidx.compose.runtime.LaunchedEffect
 
@@ -72,6 +73,7 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
                 onScan = { nav.navigate("scanner") },
                 onHistory = { nav.navigate("history") },
                 onComparison = { nav.navigate("comparison") },
+                onFavorites = { nav.navigate("favorites") },
                 isDarkMode = isDarkMode,
                 onToggleTheme = { viewModel.toggleDarkMode() }
             )
@@ -101,6 +103,13 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
 
         composable("profile") {
             com.d4vram.ahorrapp.ui.screens.ProfileScreen(onBack = { nav.popBackStack() })
+        }
+
+        composable("favorites") {
+            FavoritesScreen(
+                viewModel = viewModel,
+                onBack = { nav.popBackStack() }
+            )
         }
     }
 }

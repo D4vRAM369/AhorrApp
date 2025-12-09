@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.d4vram.ahorrapp.data.PriceEntryEntity
 import com.d4vram.ahorrapp.data.ProductInfo
 import com.d4vram.ahorrapp.data.Repository
+import com.d4vram.ahorrapp.data.UserFavorite
+import com.d4vram.ahorrapp.data.PriceAlert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import androidx.work.WorkManager
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.ExistingPeriodicWorkPolicy
+import com.d4vram.ahorrapp.workers.PriceAlertWorker
+import java.util.concurrent.TimeUnit
 
 class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -68,6 +77,8 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     init {
         checkLicense()
         loadOnboardingState()
+        loadUserFavorites()
+        loadUserAlerts()
     }
 
     private fun checkLicense() {
@@ -219,6 +230,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var selectedProductName by mutableStateOf<String?>(null)
         private set
 
+    var selectedProductBarcode by mutableStateOf<String?>(null)
+        private set
+
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val comparisonPrices: StateFlow<List<PriceEntryEntity>> = androidx.compose.runtime.snapshotFlow { selectedProductName }
         .flatMapLatest { name ->
@@ -243,6 +257,16 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var selectedProductInfo by mutableStateOf<ProductInfo?>(null)
         private set
 
+    // --- FAVORITOS Y ALERTAS ---
+    private val _userFavorites = MutableStateFlow<List<UserFavorite>>(emptyList())
+    val userFavorites: StateFlow<List<UserFavorite>> = _userFavorites.asStateFlow()
+
+    private val _userAlerts = MutableStateFlow<List<PriceAlert>>(emptyList())
+    val userAlerts: StateFlow<List<PriceAlert>> = _userAlerts.asStateFlow()
+
+    var isLoadingFavorites by mutableStateOf(false)
+        private set
+
     fun updateSearchQuery(query: String) {
         searchQuery = query
         // If content changes and doesn't match selected product, clear selection to show search/list again
@@ -253,31 +277,33 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearSelection() {
         selectedProductName = null
+        selectedProductBarcode = null
         searchQuery = "" // Optional: clear search text too? User usually expects clear on "List Mode" click.
     }
 
     fun selectProduct(name: String) {
         searchQuery = name
         selectedProductName = name
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             // Fetch potential image using barcode from first entry
             val prices = repo.getProductPrices(name).first()
             val barcode = prices.firstOrNull()?.barcode
-            
+            selectedProductBarcode = barcode
+
             if (barcode != null) {
                 // Try fetch full info (image)
                 // Usamos runCatching para evitar crashes si falla la red (ej. sin internet)
                 val info = runCatching { repo.fetchProduct(barcode) }.getOrNull()
-                
+
                 // If fetch fails (null), we still have the name.
                 // If success, we have image.
                 kotlinx.coroutines.withContext(Dispatchers.Main) {
                     selectedProductInfo = info ?: ProductInfo(name = name, brand = null)
                 }
             } else {
-                 kotlinx.coroutines.withContext(Dispatchers.Main) {
-                    selectedProductInfo = ProductInfo(name = name, brand = null)
+                  kotlinx.coroutines.withContext(Dispatchers.Main) {
+                     selectedProductInfo = ProductInfo(name = name, brand = null)
                 }
             }
         }
@@ -300,6 +326,100 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     fun overrideProduct(info: ProductInfo) {
         productState = productState.copy(product = info, error = null)
+    }
+
+    // --- FUNCIONES PARA FAVORITOS Y ALERTAS ---
+
+    private fun loadUserFavorites() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val favorites = repo.getUserFavorites(deviceId)
+            _userFavorites.value = favorites
+        }
+    }
+
+    private fun loadUserAlerts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val alerts = repo.getUserAlerts(deviceId)
+            _userAlerts.value = alerts
+        }
+    }
+
+    fun addToFavorites(barcode: String, productName: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isLoadingFavorites = true
+            val success = repo.addToFavorites(deviceId, barcode, productName)
+            if (success) {
+                loadUserFavorites() // Recargar lista
+            }
+            isLoadingFavorites = false
+        }
+    }
+
+    fun removeFromFavorites(barcode: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isLoadingFavorites = true
+            val success = repo.removeFromFavorites(deviceId, barcode)
+            if (success) {
+                loadUserFavorites() // Recargar lista
+            }
+            isLoadingFavorites = false
+        }
+    }
+
+    fun isProductFavorite(barcode: String): Boolean {
+        return _userFavorites.value.any { it.barcode == barcode }
+    }
+
+    fun createPriceAlert(barcode: String, targetPrice: Double? = null, alertPercentage: Double = 10.0) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val success = repo.createOrUpdatePriceAlert(deviceId, barcode, targetPrice, alertPercentage)
+            if (success) {
+                loadUserAlerts() // Recargar alertas
+                // Programar WorkManager para verificar alertas
+                schedulePriceAlerts()
+            }
+        }
+    }
+
+    fun removePriceAlert(barcode: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Para "remover" una alerta, la desactivamos
+            runCatching {
+                repo.createOrUpdatePriceAlert(deviceId, barcode, alertPercentage = 999.0) // Porcentaje imposible
+            }
+            loadUserAlerts()
+        }
+    }
+
+    // --- WORKMANAGER PARA ALERTAS ---
+
+    fun schedulePriceAlerts() {
+        val workManager = WorkManager.getInstance(getApplication())
+
+        // Crear constraints para ejecutar solo con conectividad
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        // Crear trabajo periódico (cada 6 horas)
+        val priceAlertWork = PeriodicWorkRequestBuilder<PriceAlertWorker>(
+            6, TimeUnit.HOURS
+        )
+            .setConstraints(constraints)
+            .setInitialDelay(1, TimeUnit.HOURS) // Primera ejecución en 1 hora
+            .build()
+
+        // Programar el trabajo
+        workManager.enqueueUniquePeriodicWork(
+            "price_alert_check",
+            ExistingPeriodicWorkPolicy.REPLACE, // Reemplazar si ya existe
+            priceAlertWork
+        )
+    }
+
+    fun cancelPriceAlerts() {
+        val workManager = WorkManager.getInstance(getApplication())
+        workManager.cancelUniqueWork("price_alert_check")
     }
 
     companion object {

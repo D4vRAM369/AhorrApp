@@ -119,7 +119,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     kapt(libs.androidx.room.compiler)
-    
+
+    // WorkManager (para alertas programadas)
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Supabase
     implementation(platform("io.github.jan-tennert.supabase:bom:2.6.1"))
     implementation(libs.supabase.postgrest)

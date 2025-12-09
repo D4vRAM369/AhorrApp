@@ -1,6 +1,6 @@
 <p align="center">
   <img src="app/src/main/res/drawable/ic_launcher_background.xml" width="200" height="200" alt="AhorrApp Icon" /> <!-- Reemplaza con ruta real al logo si disponible --><br><br>
-  <b>🛒 AhorrApp v1.0 🇮🇨</b><br><br>
+   <b>🛒 AhorrApp v1.1 🇮🇨</b><br><br>
   <img src="https://img.shields.io/badge/Kotlin-1.9%2B-orange"/>
   <img src="https://img.shields.io/badge/Android-10%2B-brightgreen?logo=android"/>
   <img src="https://img.shields.io/badge/Jetpack_Compose-UI-4285F4?logo=jetpackcompose"/>
@@ -16,7 +16,7 @@
 
 ---
 
-## ✨ Nuevo en v1.0 (MVP)
+## ✨ Nuevo en v1.1 (MVP+)
 
 * **Comparador de Precios Inteligente**: Visualización térmica de precios (sistema de colores tipo semáforo) para identificar de un vistazo las mejores ofertas entre supermercados de Canarias.
 * **Sistema de Identidad & Seguridad (ABP Security)**:
@@ -26,6 +26,37 @@
 * **Gestión de Perfil Persistente**: Edición de nombre de usuario con validación visual y sincronización en la nube.
 * **Historial Híbrido**: Respaldo local con capacidades de Exportación e Importación CSV para control total de tus datos.
 * **Navegación Fluida**: Nuevo "Modo Lista" en el comparador para exploración rápida de todo el catálogo disponible.
+* **🔔 Sistema de Alertas de Precios** (NUEVO):
+  * **Productos Favoritos**: Guarda productos para seguimiento personalizado.
+  * **Alertas Inteligentes**: Notificaciones automáticas cuando bajan los precios (configurable por porcentaje o precio objetivo).
+  * **WorkManager Integration**: Verificación automática en background cada 6 horas.
+  * **Notificaciones Push**: Alertas nativas de Android con detalles de ahorro.
+
+---
+
+## 📊 Estado del Proyecto
+
+### ✅ **Funcionalidades Completadas**
+- **Core MVP**: Escaneo, comparación y sincronización básica ✅
+- **Sistema de Alertas**: Implementado pero requiere testing en dispositivo ✅
+- **Arquitectura**: MVVM + Clean Architecture ✅
+- **UI/UX**: Jetpack Compose moderno ✅
+
+### 🚧 **En Desarrollo / Testing**
+- **Alertas de Precios**: Código listo, necesita validación en dispositivo real
+- **WorkManager**: Implementado, requiere pruebas de funcionamiento
+- **Notificaciones**: Sistema básico implementado
+
+### 🎯 **Próximas Features Planificadas**
+- **Analytics de Ahorro**: Dashboard con estadísticas personales
+- **Mapas de Tiendas**: Ubicaciones GPS + precios en tiempo real
+- **Widgets**: Pantalla principal con precios destacados
+- **Modo Offline Premium**: Caché inteligente
+
+### ⚠️ **Notas Importantes**
+- **MVP Stage**: Proyecto funcional pero en fase de testing
+- **Testing Necesario**: Alertas requieren validación en dispositivo real
+- **Documentación**: README actualizado, pero falta documentación técnica detallada
 
 ---
 
