@@ -4,6 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,9 +36,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 import com.d4vram.ahorrapp.R
 import kotlinx.coroutines.launch
+
+// Función helper para padding responsive
+@Composable
+fun responsivePadding(): Modifier {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+
+    // Padding horizontal: 16dp para pantallas pequeñas, 24dp para medianas, 32dp para grandes
+    val horizontalPadding = when {
+        screenWidth < 360 -> 16.dp  // Pantallas muy pequeñas
+        screenWidth < 600 -> 20.dp  // Pantallas normales
+        else -> 24.dp               // Tablets
+    }
+
+    return Modifier.padding(horizontal = horizontalPadding, vertical = 8.dp)
+}
+
+// Función helper para tamaño de icono responsive
+@Composable
+fun responsiveIconSize(): Dp {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+
+    return when {
+        screenWidth < 360 -> 80.dp   // Pantallas muy pequeñas
+        screenWidth < 600 -> 90.dp   // Pantallas normales
+        else -> 100.dp               // Tablets
+    }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -151,37 +184,32 @@ fun OnboardingPage1() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .then(responsivePadding())
     ) {
-        // 1. Cabecera (weight 1f, fill=false para no estirar)
+        // Contenido principal (Header + Texto) - Centrado y con scroll si es necesario
         Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f, fill = false)
+            verticalArrangement = Arrangement.Center
         ) {
             Image(
                 painter = painterResource(id = R.mipmap.ic_ahorrapp_foreground),
                 contentDescription = "Logo AhorrApp",
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(responsiveIconSize())
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 "¡Bienvenido a AhorrApp!",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-        }
+            
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // 2. Cuerpo (weight 2f)
-        Column(
-            modifier = Modifier
-                .weight(2f)
-                .padding(vertical = 8.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
             Text(
                 "Una app creada para combatir la subida masiva y descontrolada de precios de la cesta de la compra en los supermercados de Canarias, en Las Palmas 🇮🇨\n\n" +
                         "La inflación cada vez es un problema más preocupante. Vamos a crear una comunidad donde compartir precios en tiempo real: todos contribuimos, todos ahorramos. \n\n" +
@@ -189,17 +217,20 @@ fun OnboardingPage1() {
                         "Quizás en el futuro la aplicación esté disponible para más allá de Gran Canaria, pero por el momento empieza como un proyecto local. \n\n Si quieres contribuir, contáctame en Github o en Telegram.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
 
-        // 3. Footer / Tarjeta (Sin weight, tamaño fijo 'wrap content')
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Footer / Tarjeta
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -226,60 +257,65 @@ fun OnboardingPage2() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .then(responsivePadding())
     ) {
-        // Icono representativo del escáner
-        Box(
+        Column(
             modifier = Modifier
-                .size(120.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("📱", style = MaterialTheme.typography.displayLarge)
+            Box(
+                modifier = Modifier
+                    .size(responsiveIconSize())
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("📱", style = MaterialTheme.typography.displayLarge)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Escanea productos",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Usa la cámara de tu teléfono para escanear el código de barras de cualquier producto.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            "Escanea productos fácilmente",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            "Usa la cámara de tu teléfono para escanear el código de barras de cualquier producto.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    "📋 Pasos para escanear:",
+                    "📋 Pasos:",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text("1. Toca el botón 'Escanear producto'", style = MaterialTheme.typography.bodyMedium)
-                Text("2. Apunta la cámara al código de barras", style = MaterialTheme.typography.bodyMedium)
-                Text("3. Espera a que se detecte automáticamente", style = MaterialTheme.typography.bodyMedium)
+                Text("1. Toca 'Escanear producto'", style = MaterialTheme.typography.bodySmall)
+                Text("2. Apunta al código de barras", style = MaterialTheme.typography.bodySmall)
+                Text("3. Detección automática", style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -290,61 +326,65 @@ fun OnboardingPage3() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .then(responsivePadding())
     ) {
-        // Icono representativo de añadir precio
-        Box(
+        Column(
             modifier = Modifier
-                .size(120.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("💰", style = MaterialTheme.typography.displayLarge)
+            Box(
+                modifier = Modifier
+                    .size(responsiveIconSize())
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("💰", style = MaterialTheme.typography.displayLarge)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Añade precios",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Después de escanear, añade el precio actual y selecciona el supermercado donde lo encontraste. \n\n Ten en cuenta que no todos los productos que escanees estarán disponibles, aunque si la gran mayoría gracias a la API libre de OpenFoodFacts." +
+                        " El proceso para añadirlos a nuestra base de datos comunitaria es sencillo: rellena el nombre, marca y completa con más info si es pertinente el campo para detalles adicionales. \n\n Será añadido a la DB automáticamente con el último precio señalado ✅",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            "Colabora añadiendo precios y productos",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            "Después de escanear, añade el precio actual y selecciona el supermercado donde lo encontraste. \n\n Ten en cuenta que no todos los productos que escanees estarán disponibles, aunque si la gran mayoría gracias a la API libre de OpenFoodFacts." +
-                    " El proceso para añadirlos a nuestra base de datos comunitaria es sencillo: rellena el nombre, marca y completa con más info si es pertinente el campo para detalles adicionales. \n\n Será añadido a la DB automáticamente con el último precio señalado ✅",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer
             ),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    "🤝 Tu aportación importa:",
+                    "🤝 Tu aportación:",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text("• Ayudas a otros usuarios a ahorrar", style = MaterialTheme.typography.bodyMedium)
-                Text("• Construyes una base de datos colectiva", style = MaterialTheme.typography.bodyMedium)
-                Text("• Combates las subidas de precios injustas", style = MaterialTheme.typography.bodyMedium)
+                Text("• Ayudas a ahorrar a todos", style = MaterialTheme.typography.bodySmall)
+                Text("• Creas una base de datos libre", style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -355,88 +395,78 @@ fun OnboardingPage4() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+            .then(responsivePadding())
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Icono representativo de la integración tecnológica
-        Box(
+        Column(
             modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("🔗", style = MaterialTheme.typography.displayLarge)
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            "Tecnología que hace la magia",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            "AhorrApp combina la API gratuita de OpenFoodFacts con nuestra base de datos comunitaria en Supabase.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Box(
+                modifier = Modifier
+                    .size(responsiveIconSize())
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    "🔍 Cómo funciona:",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text("1. Escaneas código de barras", style = MaterialTheme.typography.bodySmall)
-                Text("2. Consulta automáticamente a la API de OpenFoodFacts", style = MaterialTheme.typography.bodySmall)
-                Text("3. Si no está, rellenas los campos para añadir el producto y el precio para añadirlo a la base de datos", style = MaterialTheme.typography.bodySmall)
-                Text("4. Precios añadidos/actualizados y productos faltantes → Supabase para todos", style = MaterialTheme.typography.bodySmall)
+                Text("🔗", style = MaterialTheme.typography.displayLarge)
             }
-        }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Tecnología mágica",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "AhorrApp combina la API gratuita de OpenFoodFacts con nuestra base de datos comunitaria en Supabase.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
 
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    "💡 Tecnología:",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text("• OpenFoodFacts: +2M productos gratis", style = MaterialTheme.typography.bodySmall)
-                Text("• Supabase: PostgreSQL + Auth", style = MaterialTheme.typography.bodySmall)
-                Text("• Room: Base local offline-first", style = MaterialTheme.typography.bodySmall)
-                Text("• Kotlin + Compose: App nativa", style = MaterialTheme.typography.bodySmall)
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text("🔍 Cómo funciona:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text("1. Escaneas código de barras", style = MaterialTheme.typography.bodySmall)
+                    Text("2. Consulta automáticamente a la API de OpenFoodFacts", style = MaterialTheme.typography.bodySmall)
+                    Text("3. Si no está, rellenas los campos para añadir el producto y el precio para añadirlo a la base de datos", style = MaterialTheme.typography.bodySmall)
+                    Text("4. Precios añadidos/actualizados y productos faltantes → Supabase para todos", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text("💡 Tech Stack:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text("• OpenFoodFacts: +2M productos", style = MaterialTheme.typography.bodySmall)
+                    Text("• Supabase: Realtime DB", style = MaterialTheme.typography.bodySmall)
+                    Text("• Kotlin + Compose: App nativa", style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
     }
@@ -447,51 +477,56 @@ fun OnboardingPage5() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .then(responsivePadding())
     ) {
-        // Icono representativo del comparador
-        Box(
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .size(120.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
         ) {
-            Text("🔍", style = MaterialTheme.typography.displayLarge)
+            Box(
+                modifier = Modifier
+                    .size(responsiveIconSize())
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("🔍", style = MaterialTheme.typography.displayLarge)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Compara y ahorra",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Busca productos por nombre o escanea para ver precios en diferentes supermercados y ahorrar.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            "Compara y encuentra ofertas",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            "Busca productos por nombre o escanea para ver precios en diferentes supermercados y ahorrar.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     "🎯 Beneficios de comparar:",
