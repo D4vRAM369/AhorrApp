@@ -1,219 +1,290 @@
-# AhorrApp 📱🛒
+-# AhorrApp 💰📱🛒
 
-**Escanea, compara y ahorra en tus compras diarias en Canarias** 🇮🇨
+[![AhorrApp icon](https://raw.githubusercontent.com/D4vRAM369/ahorrapp/main/app/src/main/res/mipmap-xxxhdpi/ic_ahorrapp.webp)](https://raw.githubusercontent.com/D4vRAM369/ahorrapp/main/app/src/main/res/mipmap-xxxhdpi/ic_ahorrapp.webp)
 
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
-[![Android](https://img.shields.io/badge/Android-API%2024+-green.svg)](https://developer.android.com/)
-[![Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5.0-blue.svg)](https://developer.android.com/jetpack/compose)
-![Build](https://github.com/D4vRAM369/AhorrApp/workflows/CI/badge.svg)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Android](https://img.shields.io/badge/Android-API%2024+-3DDC84?logo=android)](https://developer.android.com/) [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-7F52FF?logo=kotlin)](https://kotlinlang.org/) [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5.0-4285F4?logo=android)](https://developer.android.com/jetpack/compose) [![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/) [![OpenFoodFacts](https://img.shields.io/badge/OpenFoodFacts-API-00A65A)](https://world.openfoodfacts.org/) [![](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4)](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4) [![](https://img.shields.io/badge/Project_Based_Learning-orange?logo=gradle)](https://en.wikipedia.org/wiki/Project-based_learning) [![](https://img.shields.io/badge/Built_with_Claude_Code-8A2BE2?logo=anthropic)](https://claude.ai/code) [![](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai&logoColor=white)](https://chat.openai.com/)
 
-AhorrApp es una aplicación móvil gratuita y de código abierto diseñada para ayudar a los consumidores canarios a tomar decisiones de compra más inteligentes. Escanea códigos de barras, registra precios en diferentes supermercados y accede a una base de datos comunitaria para comparar ofertas y encontrar los mejores precios.
+[🇬🇧🇺🇸 English version](/D4vRAM369/ahorrapp/blob/main/README_English-version.md)
 
-## 🚀 ¿Por qué AhorrApp?
+## Tabla de Contenidos
 
-En Canarias, los precios pueden variar significativamente entre supermercados, y no siempre es fácil saber dónde encontrar la mejor oferta. AhorrApp resuelve este problema permitiendo a los usuarios:
+- [¿Qué es AhorrApp?](#qué-es-ahorrapp)
+- [Características Principales](#características-principales)
+- [Instalación](#instalación)
+- [Cómo Usar](#cómo-usar-ahorrapp)
+- [Tecnología](#tecnología)
+- [Arquitectura](#arquitectura-del-proyecto)
+- [Contribuir](#contribuir)
+- [Licencia](#licencia)
 
-- **Escanear productos** con la cámara del teléfono
-- **Registrar precios** en tiempo real
-- **Comparar ofertas** entre supermercados
-- **Recibir alertas** cuando bajan los precios de productos favoritos
-- **Contribuir a la comunidad** compartiendo información de precios
+## ¿Qué es AhorrApp?
 
-Todo de forma gratuita, sin anuncios y respetando tu privacidad.
+**AhorrApp** es una aplicación Android inteligente y comunitaria diseñada para ayudarte a **ahorrar dinero** mediante la comparación de precios de productos. Desarrollada en **Kotlin** y **Jetpack Compose**, esta herramienta permite escanear códigos de barras, registrar precios en diferentes supermercados y recibir alertas inteligentes cuando bajen los precios de tus productos favoritos.
 
-## ✨ Características principales
+Ideal para consumidores conscientes que quieren optimizar sus compras y contribuir a una base de datos comunitaria de precios.
 
-### 📱 Funcionalidades core
-- **Escáner de códigos de barras** integrado con ML Kit
-- **Registro de precios** por supermercado y producto
-- **Base de datos comunitaria** alimentada por usuarios
-- **Historial personal** de precios registrados
-- **Comparador inteligente** de ofertas
+## ¿Por qué usar AhorrApp?
 
-### 🔔 Sistema de alertas
-- **Productos favoritos** para seguimiento
-- **Alertas de precio** configurables (porcentaje o precio objetivo)
-- **Notificaciones automáticas** cuando bajan los precios
+### 💰 Ahorra Dinero Real
 
-### 🎨 Experiencia de usuario
-- **Interfaz moderna** con Jetpack Compose
+- **Comparación inteligente** de precios entre supermercados
+- **Alertas automáticas** cuando bajan los precios de tus productos favoritos
+- **Historial personal** para rastrear tus mejores compras
+- **Base de datos comunitaria** con precios reales de usuarios
+
+### 📱 Experiencia Moderna y Fluida
+
+- **Interfaz intuitiva** con Jetpack Compose y Material Design 3
+- **Escáner avanzado** de códigos de barras con ML Kit
 - **Modo oscuro/claro** automático
-- **Diseño adaptativo** para diferentes tamaños de pantalla
-- **Navegación intuitiva** y fluida
+- **Onboarding completo** para nuevos usuarios
 
-### 🔒 Privacidad y seguridad
-- **Sin recopilación de datos personales** (solo precios y códigos de barras)
-- **Licencia por dispositivo** para control de calidad
-- **Código 100% open source** y auditable
+### 🌐 Comunidad y Colaboración
 
-## 📸 Capturas de pantalla
+- **Datos compartidos** de manera anónima y segura
+- **Información nutricional** integrada con OpenFoodFacts
+- **Sistema de licencias** justo por dispositivo
+- **Contribución activa** a la economía colaborativa
 
-### Pantalla principal
-<img src="screenshots/home_screen.png" width="300" alt="Pantalla principal de AhorrApp">
+## Características Principales
 
-### Escáner de códigos de barras
-<img src="screenshots/scanner_screen.png" width="300" alt="Escáner de códigos de barras">
+### 🛒 Gestión Inteligente de Precios
 
-### Comparador de precios
-<img src="screenshots/comparison_screen.png" width="300" alt="Comparador de precios">
+- **Escáner de códigos de barras** con ML Kit y CameraX
+- **Registro de precios** por supermercado y ubicación
+- **Base de datos comunitaria** usando Supabase
+- **Historial completo** de todas tus aportaciones
 
-### Historial de precios
-<img src="screenshots/history_screen.png" width="300" alt="Historial de precios">
+### 🔔 Sistema de Alertas Avanzado
 
-> **Nota**: Las capturas de pantalla deben añadirse en la carpeta `screenshots/` del repositorio.
+- **Alertas configurables** para productos favoritos
+- **Notificaciones push** automáticas con WorkManager
+- **Seguimiento inteligente** de cambios de precio
+- **Precios objetivo** personalizables
 
-## 🛠️ Tecnologías utilizadas
+### ⭐ Funcionalidades Premium
 
-- **Lenguaje**: Kotlin
-- **UI Framework**: Jetpack Compose
-- **Backend**: Supabase (PostgreSQL + Auth)
-- **APIs externas**: OpenFoodFacts para información de productos
-- **Base de datos local**: Room
-- **Escáner**: ML Kit (Google)
-- **Cámara**: CameraX
-- **Trabajos en segundo plano**: WorkManager
+- **Productos favoritos** para seguimiento personalizado
+- **Comparador inteligente** entre múltiples supermercados
+- **Integración con OpenFoodFacts** para datos nutricionales
+- **Interfaz moderna** y responsive
 
-## 📋 Requisitos
+### 🔒 Privacidad y Seguridad
 
-- **Android**: API 24+ (Android 7.0)
-- **Permisos**: Cámara (para escanear códigos de barras)
+- **Datos anónimos** en la base comunitaria
+- **Licencias por dispositivo** justas
+- **Sin trackers** ni recopilación innecesaria
+- **Código abierto** y auditable
 
-## 🚀 Instalación y configuración
+## 📸 Capturas de Pantalla
 
-### Prerrequisitos
-- **Android Studio**: Versión Arctic Fox o superior
-- **JDK**: Versión 11
-- **Cuenta Supabase**: Para la base de datos backend
+*Próximamente - Capturas de pantalla de la aplicación en funcionamiento*
 
-### 1. Clonar el repositorio
+## Instalación
+
+### Lo que Necesitas
+
+- Android 7.0 (API 24) o superior
+- ~50MB de espacio disponible
+- Cámara para escanear códigos de barras
+- Conexión a internet para sincronización comunitaria
+
+### Cómo Instalar
+
+#### Opción 1: Desde GitHub Releases
+
+1. Ve a la sección [Releases](https://github.com/D4vRAM369/ahorrapp/releases)
+2. Descarga el APK más reciente
+3. Instala en tu dispositivo Android
+4. Concede permisos de cámara cuando se solicite
+
+#### Opción 2: Compilar desde Código Fuente
+
 ```bash
-git clone https://github.com/D4vRAM369/AhorrApp.git
-cd AhorrApp
+git clone https://github.com/D4vRAM369/ahorrapp.git
+cd ahorrapp
+./gradlew assembleRelease
 ```
 
-### 2. Configurar API keys
-Crea un archivo `local.properties` en la raíz del proyecto con tus credenciales de Supabase:
+### Configuración Inicial
 
-```properties
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_KEY=tu_supabase_anon_key_aqui
+1. **Primera ejecución**: La app te guiará con un onboarding completo
+2. **Licencia**: Registra tu dispositivo para acceder a todas las funciones
+3. **Permisos**: Concede acceso a la cámara para escanear productos
+4. **Sincronización**: Los datos comunitarios se descargarán automáticamente
+
+## Cómo Usar AhorrApp
+
+### 🚀 Primeros Pasos
+
+1. **Onboarding**: Sigue las instrucciones iniciales
+2. **Licencia**: Registra tu dispositivo
+3. **Permisos**: Autoriza el uso de la cámara
+
+### 📱 Funcionalidades Principales
+
+1. **Escanear Producto**
+   - Abre la pantalla de escáner
+   - Apunta la cámara al código de barras
+   - La app reconocerá automáticamente el producto
+
+2. **Registrar Precio**
+   - Selecciona el supermercado actual
+   - Ingresa el precio observado
+   - Confirma para compartir con la comunidad
+
+3. **Comparar Precios**
+   - Ve todos los precios reportados para ese producto
+   - Compara entre diferentes supermercados
+   - Identifica las mejores ofertas
+
+4. **Marcar Favoritos**
+   - Toca el corazón en cualquier producto
+   - Recibe alertas cuando baje el precio
+   - Configura precios objetivo personalizados
+
+5. **Ver Historial**
+   - Revisa todas tus aportaciones
+   - Rastrea tus mejores compras
+   - Analiza tus patrones de ahorro
+
+## Tecnología
+
+Este proyecto es un excelente ejemplo de desarrollo Android moderno con enfoque comunitario:
+
+- **Lenguaje**: [Kotlin](https://kotlinlang.org/) 1.9.0+
+- **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose) con Material Design 3
+- **Arquitectura**: MVVM (Model-View-ViewModel) con Flows
+- **Base de Datos**: [Room](https://developer.android.com/training/data-storage/room) para local + [Supabase](https://supabase.com/) para comunitario
+- **APIs Externas**: [OpenFoodFacts](https://world.openfoodfacts.org/) para información nutricional
+- **ML**: [Google ML Kit](https://developers.google.com/ml-kit) para reconocimiento de códigos de barras
+- **Cámara**: [CameraX](https://developer.android.com/training/camerax) para captura avanzada
+- **Trabajo en Segundo Plano**: [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) para alertas
+- **Imágenes**: [Coil](https://coil-kt.github.io/coil/) para carga eficiente
+- **Red**: [Retrofit](https://square.github.io/retrofit/) + [Gson](https://github.com/google/gson/)
+- **Build System**: Gradle Kotlin DSL
+
+## Arquitectura del Proyecto
+
+```
+app/src/main/java/com/d4vram/ahorrapp/
+├── data/                    # 🗄️ Capa de datos
+│   ├── AppDatabase.kt      # Configuración Room local
+│   ├── Repository.kt       # Repositorio principal
+│   ├── OpenFoodApiService.kt # API de OpenFoodFacts
+│   ├── OpenFoodProductResponse.kt # Modelos de respuesta
+│   ├── PriceDao.kt         # Acceso a datos de precios
+│   ├── PriceEntryEntity.kt # Entidades Room
+│   ├── PricePayload.kt     # Modelos de API
+│   └── ProductInfo.kt      # Información de productos
+├── ui/                     # 🎨 Capa de presentación
+│   ├── screens/            # Pantallas principales
+│   │   ├── ComparisonScreen.kt
+│   │   ├── FavoritesScreen.kt
+│   │   ├── HistoryScreen.kt
+│   │   ├── HomeScreen.kt
+│   │   ├── OnboardingScreen.kt
+│   │   ├── PriceEntryScreen.kt
+│   │   ├── ProfileScreen.kt
+│   │   ├── ScannerScreen.kt
+│   │   └── WelcomeScreen.kt
+│   └── theme/              # Tema y estilos
+│       ├── Color.kt
+│       ├── Theme.kt
+│       └── Type.kt
+├── viewmodel/              # 🧠 Lógica de negocio
+│   ├── RememberTpvViewModel.kt
+│   └── TpvViewModel.kt
+├── navigation/             # 🧭 Navegación
+│   └── NavGraph.kt
+├── workers/                # ⚙️ Tareas en segundo plano
+│   └── PriceAlertWorker.kt
+└── MainActivity.kt         # 📱 Actividad principal
 ```
 
-> **⚠️ Importante**: Nunca commits el archivo `local.properties` al repositorio. Está incluido en `.gitignore`.
+## 📊 Datos Técnicos
 
-### 3. Construir la app
-```bash
-./gradlew build
-```
+### Versiones Soportadas
+- **Android Target**: API 34 (Android 14)
+- **Android Mínimo**: API 24 (Android 7.0)
+- **Kotlin**: 1.9.0
+- **Jetpack Compose**: 1.5.x
 
-### 4. Ejecutar en dispositivo/emulador
-```bash
-./gradlew installDebug
-```
+### Base de Datos Comunitaria (Supabase)
 
-### 5. Configuración de Supabase (Backend)
-La app utiliza Supabase como backend. Necesitas crear las siguientes tablas:
-
-#### Tabla: `prices`
+**Tabla: prices**
 ```sql
 CREATE TABLE prices (
-  id BIGSERIAL PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   barcode TEXT NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
   supermarket TEXT NOT NULL,
-  price DECIMAL NOT NULL,
+  user_id TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   product_name TEXT,
-  brand TEXT,
-  more_info TEXT,
-  nickname TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  brand TEXT
 );
 ```
 
-#### Tabla: `user_favorites`
+**Tabla: favorites**
 ```sql
-CREATE TABLE user_favorites (
-  id BIGSERIAL PRIMARY KEY,
-  device_id TEXT NOT NULL,
+CREATE TABLE favorites (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
   barcode TEXT NOT NULL,
-  product_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-#### Tabla: `price_alerts`
+**Tabla: price_alerts**
 ```sql
 CREATE TABLE price_alerts (
-  id BIGSERIAL PRIMARY KEY,
-  device_id TEXT NOT NULL,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
   barcode TEXT NOT NULL,
-  target_price DECIMAL,
-  alert_percentage DECIMAL DEFAULT 10.0,
+  target_price DECIMAL(10,2) NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  last_alert_at TIMESTAMP WITH TIME ZONE
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
-
-#### Tabla: `app_licenses`
-```sql
-CREATE TABLE app_licenses (
-  device_id TEXT PRIMARY KEY,
-  is_active BOOLEAN DEFAULT TRUE,
-  nickname TEXT,
-  last_used_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-```
-
-## 📖 Uso de la aplicación
-
-1. **Primera ejecución**: Completa el onboarding
-2. **Escanea productos**: Usa el botón "Escanear producto" en la pantalla principal
-3. **Registra precios**: Añade el precio actual y supermercado
-4. **Compara ofertas**: Usa el comparador para buscar productos
-5. **Configura alertas**: Añade productos a favoritos para recibir notificaciones
 
 ## 🤝 Contribuir
 
-¡Las contribuciones son bienvenidas! AhorrApp es un proyecto open source y cualquier ayuda es valiosa.
+¿Quieres mejorar AhorrApp? Las contribuciones son bienvenidas:
 
-### Cómo contribuir:
-1. **Fork** el repositorio
-2. **Crea una rama** para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. **Commit** tus cambios (`git commit -m 'Añade nueva funcionalidad'`)
-4. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
-5. **Abre un Pull Request**
+1. Fork del repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Sigue las convenciones de Kotlin/Android
+4. Envía tu PR con descripción detallada
 
-### Tipos de contribuciones:
-- 🐛 **Reportar bugs**
-- 💡 **Sugerir nuevas features**
-- 📝 **Mejorar documentación**
-- 🎨 **Diseño UI/UX**
-- 🔧 **Mejoras técnicas**
-- 🌐 **Traducciones**
+### Guías de Contribución
+- Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para detalles
+- Sigue el estilo de código establecido
+- Añade tests para nuevas funcionalidades
+- Documenta cambios significativos
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo la **Licencia GPL-3.0** - ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ## 🙏 Agradecimientos
 
-- **OpenFoodFacts** por la API de información de productos
-- **Supabase** por el backend como servicio
-- **Google ML Kit** por el reconocimiento de códigos de barras
-- **Comunidad open source** por las librerías utilizadas
+- **[OpenFoodFacts](https://world.openfoodfacts.org/)** por la base de datos nutricional
+- **[Supabase](https://supabase.com/)** por el backend comunitario
+- **[Google ML Kit](https://developers.google.com/ml-kit)** por el reconocimiento de códigos
+- **Comunidad Android** por las librerías y herramientas
+- **Contribuidores** que hacen posible este proyecto
 
-## 📞 Contacto
+## 💬 Soporte al Proyecto
 
-**Desarrollado por [D4vRAM](https://github.com/D4vRAM369)**
+Si AhorrApp te ayuda a ahorrar dinero y tomar mejores decisiones de compra, considera apoyar el proyecto:
 
-- 🌐 **GitHub**: [github.com/D4vRAM369](https://github.com/D4vRAM369)
-- ☕ **Buy me a coffee**: [buymeacoffee.com/D4vRAM369](https://www.buymeacoffee.com/D4vRAM369)
-- 📧 **Email**: [Tu email si quieres compartirlo]
+[![GitHub stars](https://img.shields.io/github/stars/D4vRAM369/ahorrapp?style=social)](https://github.com/D4vRAM369/ahorrapp/stargazers) [![Buy me a coffee](https://img.shields.io/badge/Buy_me_a_coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/D4vRAM369)
 
 ---
 
-**Hecho con ❤️ en Gran Canaria para la comunidad canaria** 🇮🇨
+*Desarrollado con ❤️ y ☕ para la comunidad de consumidores inteligentes.*
 
-*Si encuentras útil esta app, considera dejar una estrella ⭐ en GitHub o invitarme a un café ☕*
+## About
+
+Aplicación Android inteligente para ahorrar dinero mediante comparación de precios comunitaria. Escanea productos, registra precios y recibe alertas cuando bajen los precios de tus productos favoritos.
