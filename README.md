@@ -1,8 +1,18 @@
--# AhorrApp 💰📱🛒
+# AhorrApp 💰📱🛒🇮🇨
 
-[![AhorrApp icon](https://raw.githubusercontent.com/D4vRAM369/ahorrapp/main/app/src/main/res/mipmap-xxxhdpi/ic_ahorrapp.webp)](https://raw.githubusercontent.com/D4vRAM369/ahorrapp/main/app/src/main/res/mipmap-xxxhdpi/ic_ahorrapp.webp)
+![](../e616c6a0/README_20251210130500824.png)
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Android](https://img.shields.io/badge/Android-API%2024+-3DDC84?logo=android)](https://developer.android.com/) [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-7F52FF?logo=kotlin)](https://kotlinlang.org/) [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5.0-4285F4?logo=android)](https://developer.android.com/jetpack/compose) [![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/) [![OpenFoodFacts](https://img.shields.io/badge/OpenFoodFacts-API-00A65A)](https://world.openfoodfacts.org/) [![](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4)](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4) [![](https://img.shields.io/badge/Project_Based_Learning-orange?logo=gradle)](https://en.wikipedia.org/wiki/Project-based_learning) [![](https://img.shields.io/badge/Built_with_Claude_Code-8A2BE2?logo=anthropic)](https://claude.ai/code) [![](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai&logoColor=white)](https://chat.openai.com/)
+![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue)
+[![Android](https://img.shields.io/badge/Android-API%2024+-3DDC84?logo=android)](https://developer.android.com/) [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-7F52FF?logo=kotlin)](https://kotlinlang.org/) [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5.0-4285F4?logo=android)](https://developer.android.com/jetpack/compose) [![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/) [![OpenFoodFacts](https://img.shields.io/badge/OpenFoodFacts-API-00A65A)](https://world.openfoodfacts.org/) [![](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4)](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4) ![Project-Based Learning](https://img.shields.io/badge/Project--Based_Learning-FF8C00?style=flat)
+ <a href="https://www.buymeacoffee.com/D4vRAM369"><img src="https://img.shields.io/badge/Buy_me_a_coffee-☕-5F7FFF"/></a> ![Gemini 3 Pro](https://img.shields.io/badge/Gemini_3_Pro-4285F4?logo=google&logoColor=white)
+ [![ChatGPT by OpenAI](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai-icon&logoColor=white)](https://chat.openai.com/)
+![Grok CodeFast-1](https://img.shields.io/badge/Grok-CodeFast--1-8A2BE2?logo=starship&logoColor=white)
+ 
+ 
+
+
+![Antigravity IDE](https://img.shields.io/badge/Antigravity%20IDE-121212?style=for-the-badge&logo=jetbrains&logoColor=white)
+![Gran Canaria](https://img.shields.io/badge/Gran%20Canaria-🇮🇨-FFDD00?style=for-the-badge)![Made by D4vRAM](https://img.shields.io/badge/Made%20by-D4vRAM369-006CFF?style=for-the-badge&logo=github&logoColor=white)
 
 [🇬🇧🇺🇸 English version](/D4vRAM369/ahorrapp/blob/main/README_English-version.md)
 
@@ -19,25 +29,89 @@
 
 ## ¿Qué es AhorrApp?
 
-**AhorrApp** es una aplicación Android inteligente y comunitaria diseñada para ayudarte a **ahorrar dinero** mediante la comparación de precios de productos. Desarrollada en **Kotlin** y **Jetpack Compose**, esta herramienta permite escanear códigos de barras, registrar precios en diferentes supermercados y recibir alertas inteligentes cuando bajen los precios de tus productos favoritos.
+**AhorrApp** es una aplicación Android con un objetivo claro: **ahorrar en nuestras compras diarias**, **apuntando directamente a la especulación de las abusivas y continuas subidas de precios de los distintos supermercados de Las Palmas🇮🇨 (Canarias)**.
 
-Ideal para consumidores conscientes que quieren optimizar sus compras y contribuir a una base de datos comunitaria de precios.
+Soy consciente de que ésta situación no corresponde únicamente a Gran Canaria, **sino a todo el archipiélago canario.** Es por ello por lo que abro la posibilidad a que programadores más experimentados que yo, y/o que quieran colaborar en el proyecto, se pongan en contacto conmigo para ampliar la cobertura de precios y mejorar el proyecto en conjunto.
+
+Obviamente para cualquier colaboración o tipo de cambios en el código fuente, **es imprescindible que contacten conmigo para participar en el proyecto como contribuidores**. Más información en el archivo *CONTRIBUTING.md*
+
+Además de contactarme vía mensaje directo por Github, puedes contactarme vía Telegram como método de contacto principal.
+
+**El enlace de contacto es t.me/D4vRAM369**
+
+Es una aplicación comunitaria diseñada para ayudar a **ahorrar dinero** mediante la comparación de precios de productos de los distintos supermercados. Desarrollada en **Kotlin** y **Jetpack Compose**, esta herramienta permite escanear códigos de barras, registrar precios en diferentes supermercados, marcar productos como favoritos y tenerlos en una sección dedicada a ello. Incorporada también un sistema de notificaciones de alertas de bajadas de precios favoritos, pero aclaro que está en fase de prueba aún y el proyecto sigue y seguirá en desarrollo.
+
+Creada como los demás proyectos que tengo con un método de estudio Project-Based Learning (PBL): aprender mientras creo y viceversa.
+
+## Cómo usar AhorrApp y su funcionamiento
+
+AhorrApp es muy sencilla de utilizar. Los pasos de funcionamiento son los siguientes:
+
+ - **Escaneas el código de barras del producto** de precios entre supermercados
+ - Si el producto está incluido en la API de **OpenFoodFacts**, se identificará automáticamente y solo debes **introducir el precio actual y el supermercado** en el dropdown (selector) para ello.
+ - Al escanear y seleccionar el supermercado y precio, **se añadirá a tu base de datos local y también de forma automática a la base de datos comunitaria en Supabase**: **mientras mas participemos, más precisa y rica será la base de datos.**
+ - Si sale una imágen con *"Error 404: artículo no encontrado"*, signfica que el producto no está incluido en la API de OpenFoodFacts, **no es problema de la app**. De hecho al salir esa imágen, la aplicación está funcionando perfectamente, ya que en su código las instrucciones son redirigir a esa imágen si no encuentra el código de barras en la API previamente mencionada.
+ - **En esos caso, te saldrá un panel para rellenar los campos de nombre, marca e información adicional**, y tras guardar una vez, se **quedará guardado automáticamente tanto en tu base de datos local de la app, como en nuestra base de datos comunitaria** para futuros escaneos. 
+ - **Los datos pasan a ser visibles por todos en tiempo real, con las últimas actualizaciones de precios.**
+
+
+Recomiendo que añadan un nickname o nombre de pila al momento de la instalación (o desde "Perfil" dentro de "Historial de precios"), para hacer la base de datos más organizada.
+
+Como alternativa o sugerencia, también pueden por ejemplo en lugar del nombre, introducir una **localización apróximada** en su lugar, si siempre compran en el mismo lugar *(ej: San Telmo, Santa Catalina, Guanarteme, etc.)*
+
+### 🚀 Primeros Pasos
+
+1. **Onboarding**: Sigue las instrucciones iniciales
+2. **Licencia**: Registra tu dispositivo
+3. **Permisos**: Autoriza el uso de la cámara
+
+### 📱 Funcionalidades Principales
+
+Explicadas en mayor profundidad arriba, especialmente lo de añadir productos nuevos cuando no estén en la API:
+
+1. **Escanear Producto**
+   - Abre la pantalla de escáner
+   - Apunta la cámara al código de barras
+   - La app reconocerá automáticamente el producto
+
+2. **Registrar Precio**
+   - Selecciona el supermercado actual
+   - Ingresa el precio observado
+   - Confirma para compartir con la comunidad
+
+3. **Comparar Precios**
+   - Ve todos los precios reportados para ese producto con interfaz térmica (distintos colores según el porcentaje de diferencia a la alza o a la baja)
+   - Compara entre diferentes supermercados
+   - Identifica las mejores ofertas
+
+4. **Marcar Favoritos**
+   - Toca el corazón en cualquier producto
+   - Recibe alertas cuando baje el precio *(🚧 en fase de pruebas y desarrollo 🚧)*
+   - Configura precios objetivo personalizados
+
+5. **Ver Historial**
+   - Revisa todas tus aportaciones y revisa en tus productos si alguien ha actualizado el precio.
+   - Al entrar en un producto: se puede ver el día de la actualización con el nombre/nickname de la persona que lo escaneó por última vez.
+   - Rastrea tus mejores compras
+   - Analiza tus patrones de ahorro
+
+
 
 ## ¿Por qué usar AhorrApp?
 
 ### 💰 Ahorra Dinero Real
 
-- **Comparación inteligente** de precios entre supermercados
-- **Alertas automáticas** cuando bajan los precios de tus productos favoritos
+- **Comparación inteligente** de precios que indica diferencias entre precios de distintos supermercados en el producto seleccionado.
 - **Historial personal** para rastrear tus mejores compras
 - **Base de datos comunitaria** con precios reales de usuarios
+- **Alertas automáticas** cuando bajan los precios de tus productos favoritos ***🚧 EN FASE DE PRUEBA Y DESARROLLO 🚧***
 
 ### 📱 Experiencia Moderna y Fluida
 
 - **Interfaz intuitiva** con Jetpack Compose y Material Design 3
 - **Escáner avanzado** de códigos de barras con ML Kit
 - **Modo oscuro/claro** automático
-- **Onboarding completo** para nuevos usuarios
+- **Onboarding completo** para nuevos usuarios *(5 pantallas que solo aparecen en el momento de la instalación)*
 
 ### 🌐 Comunidad y Colaboración
 
@@ -55,7 +129,7 @@ Ideal para consumidores conscientes que quieren optimizar sus compras y contribu
 - **Base de datos comunitaria** usando Supabase
 - **Historial completo** de todas tus aportaciones
 
-### 🔔 Sistema de Alertas Avanzado
+### 🔔 Sistema de Alertas Avanzado *(En fase de pruebas aún)*
 
 - **Alertas configurables** para productos favoritos
 - **Notificaciones push** automáticas con WorkManager
@@ -66,7 +140,6 @@ Ideal para consumidores conscientes que quieren optimizar sus compras y contribu
 
 - **Productos favoritos** para seguimiento personalizado
 - **Comparador inteligente** entre múltiples supermercados
-- **Integración con OpenFoodFacts** para datos nutricionales
 - **Interfaz moderna** y responsive
 
 ### 🔒 Privacidad y Seguridad
@@ -115,38 +188,6 @@ cd ahorrapp
 
 ## Cómo Usar AhorrApp
 
-### 🚀 Primeros Pasos
-
-1. **Onboarding**: Sigue las instrucciones iniciales
-2. **Licencia**: Registra tu dispositivo
-3. **Permisos**: Autoriza el uso de la cámara
-
-### 📱 Funcionalidades Principales
-
-1. **Escanear Producto**
-   - Abre la pantalla de escáner
-   - Apunta la cámara al código de barras
-   - La app reconocerá automáticamente el producto
-
-2. **Registrar Precio**
-   - Selecciona el supermercado actual
-   - Ingresa el precio observado
-   - Confirma para compartir con la comunidad
-
-3. **Comparar Precios**
-   - Ve todos los precios reportados para ese producto
-   - Compara entre diferentes supermercados
-   - Identifica las mejores ofertas
-
-4. **Marcar Favoritos**
-   - Toca el corazón en cualquier producto
-   - Recibe alertas cuando baje el precio
-   - Configura precios objetivo personalizados
-
-5. **Ver Historial**
-   - Revisa todas tus aportaciones
-   - Rastrea tus mejores compras
-   - Analiza tus patrones de ahorro
 
 ## Tecnología
 
@@ -250,12 +291,12 @@ CREATE TABLE price_alerts (
 
 ## 🤝 Contribuir
 
-¿Quieres mejorar AhorrApp? Las contribuciones son bienvenidas:
+¿Quieres mejorar AhorrApp? Las contribuciones son bienvenidas, **pero es imprescindible seguir las reglas del archivo CONTRIBUTING.md**:
 
 1. Fork del repositorio
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
 3. Sigue las convenciones de Kotlin/Android
-4. Envía tu PR con descripción detallada
+4. Envía tu PR con descripción detallada y contacta conmigo
 
 ### Guías de Contribución
 - Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para detalles
@@ -265,7 +306,7 @@ CREATE TABLE price_alerts (
 
 ## 📄 Licencia
 
-Este proyecto está bajo la **Licencia GPL-3.0** - ver el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo la **Licencia BUSL-1.1** - ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ## 🙏 Agradecimientos
 
@@ -273,7 +314,7 @@ Este proyecto está bajo la **Licencia GPL-3.0** - ver el archivo [LICENSE](LICE
 - **[Supabase](https://supabase.com/)** por el backend comunitario
 - **[Google ML Kit](https://developers.google.com/ml-kit)** por el reconocimiento de códigos
 - **Comunidad Android** por las librerías y herramientas
-- **Contribuidores** que hacen posible este proyecto
+- **Contribuidores** que hacen y harán posible este proyecto con su continuidad
 
 ## 💬 Soporte al Proyecto
 
@@ -283,8 +324,6 @@ Si AhorrApp te ayuda a ahorrar dinero y tomar mejores decisiones de compra, cons
 
 ---
 
-*Desarrollado con ❤️ y ☕ para la comunidad de consumidores inteligentes.*
+*Desarrollado por D4vRAM con ❤️ y ☕ para la comunidad de Canarias que está harta de la tiranía de los precios abusivos a la que nos vemos sometidos.*
 
-## About
-
-Aplicación Android inteligente para ahorrar dinero mediante comparación de precios comunitaria. Escanea productos, registra precios y recibe alertas cuando bajen los precios de tus productos favoritos.
+**Es hora de decir BASTA**. Descarga AhorrApp y únete a la comunidad. Te necesitamos, nos necesitamos.

@@ -1,120 +1,96 @@
-# Guía de Contribución
+# Contribuir a AhorrApp
 
-¡Gracias por tu interés en contribuir a AhorrApp! 🎉
-
-Este documento explica cómo puedes contribuir al proyecto de manera efectiva.
-
-## 🚀 Cómo empezar
-
-### 1. Fork y Clone
-```bash
-git clone https://github.com/tu-usuario/AhorrApp.git
-cd AhorrApp
-```
-
-### 2. Configurar el entorno
-Sigue las instrucciones de instalación en el [README.md](README.md).
-
-### 3. Crear una rama
-```bash
-git checkout -b feature/nueva-funcionalidad
-```
-
-## 📝 Tipos de contribuciones
-
-### 🐛 Reportar bugs
-- Usa las plantillas de issue disponibles
-- Incluye pasos para reproducir
-- Añade capturas de pantalla si es relevante
-
-### 💡 Sugerir nuevas features
-- Describe el problema que resuelve
-- Explica la implementación propuesta
-- Considera el impacto en la UX
-
-### 🔧 Contribuciones técnicas
-- **Código**: Sigue las convenciones de Kotlin/Android
-- **Tests**: Añade tests para nuevas funcionalidades
-- **Documentación**: Actualiza README y comentarios
-
-### 🎨 Diseño y UX
-- Mejoras en la interfaz
-- Nuevos iconos o assets
-- Optimizaciones de rendimiento
-
-## 📋 Estándares de código
-
-### Kotlin
-- Usa `val` en lugar de `var` cuando sea posible
-- Nombres descriptivos para variables y funciones
-- Comentarios en español para código complejo
-
-### Compose
-- Usa `remember` apropiadamente
-- Evita efectos secundarios en composables
-- Mantén la lógica de UI separada
-
-### Commits
-```bash
-git commit -m "feat: añadir funcionalidad de escaneo mejorado
-
-- Mejora la detección de códigos de barras
-- Añade feedback visual al usuario
-- Fixes #123"
-```
-
-## 🧪 Testing
-
-### Ejecutar tests
-```bash
-./gradlew test                    # Unit tests
-./gradlew connectedAndroidTest    # Instrumented tests
-```
-
-### Añadir tests
-- Tests unitarios para lógica de negocio
-- Tests de UI para componentes Compose
-- Tests de integración para flujos completos
-
-## 📄 Pull Requests
-
-### Checklist antes de enviar
-- [ ] Código compila sin errores
-- [ ] Tests pasan
-- [ ] Lint pasa (`./gradlew lint`)
-- [ ] Documentación actualizada
-- [ ] Commits siguen el formato conventional
-
-### Descripción del PR
-```
-## Descripción
-Breve explicación de los cambios
-
-## Tipo de cambio
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-Cómo probar los cambios
-
-## Screenshots
-Si aplica, añadir capturas
-```
-
-## 🤝 Código de conducta
-
-- Sé respetuoso con otros contribuidores
-- Mantén un ambiente positivo
-- Ayuda a revisar PRs de otros
-
-## 📞 Contacto
-
-- **Issues**: [GitHub Issues](https://github.com/D4vRAM369/AhorrApp/issues)
-- **Discussions**: Para preguntas generales
-- **Email**: Para asuntos privados
+Gracias por tu interés en colaborar con AhorrApp, un proyecto desarrollado en Canarias y pensado para la comunidad del archipiélago. Aunque damos la bienvenida a desarrolladores experimentados, la colaboración es **controlada y supervisada** para proteger la visión, la calidad y el futuro comercial del proyecto.
 
 ---
 
-¡Tu contribución hace la diferencia! Cada aportación, por pequeña que sea, ayuda a mejorar AhorrApp para la comunidad canaria. 🇮🇨
+## 📌 Requisitos previos
+
+- Haber leído la licencia del proyecto (BUSL 1.1).
+- Comprender que AhorrApp es un proyecto *source-available*, no open-source clásico.
+- Toda contribución requiere aprobación explícita del autor: **D4vRAM**.
+
+---
+
+## 🔒 Regla principal
+
+> **Ninguna contribución será aceptada sin aprobación previa del Licensor (D4vRAM).**
+
+Esto incluye:
+
+- Nuevas funciones
+- Correcciones de errores
+- Refactorizaciones
+- Cambios en arquitectura
+- Documentación
+- Diseño UI/UX
+- Integraciones externas
+
+---
+
+## 📥 Cómo proponer una contribución
+
+1. Abre un **Issue** describiendo la mejora o el bug:
+   - Qué quieres cambiar
+   - Por qué es útil
+   - Cómo lo implementarías
+   - Impacto en la app
+
+2. Espera una respuesta del autor con:
+   - Aprobación
+   - Solicitud de cambios
+   - O rechazo (con motivos técnicos)
+
+3. Solo cuando recibas aprobación, puedes abrir un **Pull Request**.
+
+---
+
+## 📤 Normas para Pull Requests
+
+- El PR debe referenciar el Issue aprobado.
+- Incluye descripción clara del cambio.
+- Asegúrate de no introducir dependencias innecesarias.
+- Sigue el estilo de código existente.
+- Los PR no aprobados serán cerrados automáticamente.
+
+---
+
+## 🧠 Derechos sobre las contribuciones
+
+Al enviar una contribución, aceptas que:
+
+- Pasa a formar parte del proyecto oficial.
+- Queda licenciada bajo **BUSL 1.1**.
+- No puedes reutilizarla en productos derivados sin permiso.
+- No genera derechos comerciales para el contribuyente.
+
+---
+
+## 🤝 Filosofía de colaboración
+
+AhorrApp es un proyecto que nace en Canarias para mejorar la vida económica de la 
+comunidad. Si quieres aportar:
+
+- ideas,
+- experiencia,
+- código,
+- diseño,
+
+…serás bienvenido siempre que respetes la visión y coordinación del autor.
+
+Construimos juntos, pero **bajo una dirección clara y consensuada.**
+
+---
+
+## 📬 Contacto
+
+Si deseas colaborar de forma más profunda, ponte en contacto directamente con 
+**D4vRAM** mediante:
+
+- Telegram: t.me/D4vRAM369
+- Issues del repositorio
+- Mensaje directo a través de GitHub
+
+---
+
+¡Gracias por contribuir al ecosistema tecnológico del archipiélago! 🇮🇨🌊🌴
