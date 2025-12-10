@@ -148,9 +148,164 @@ Explicadas en mayor profundidad arriba, especialmente lo de añadir productos nu
 - **Sin trackers** ni recopilación innecesaria
 - **Código abierto** y auditable
 
+---
+
 ## 📸 Capturas de Pantalla
 
-*Próximamente - Capturas de pantalla de la aplicación en funcionamiento*
+Un recorrido visual por las principales pantallas de la app. Tamaño reducido (**140px**) para un efecto collage limpio.
+
+
+## 🚀 Onboarding (Instalación)
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/68ffc02f-87ef-4611-91db-ea9ef4189e18" width="140"/>
+      <br/><sub>Bienvenida</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/ea40f3fd-46ae-4b5c-b24a-f88a8cdddcff" width="140"/>
+      <br/><sub>Onboarding 1</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/3748fe8b-5af2-4cd8-bc65-e9373b16c34b" width="140"/>
+      <br/><sub>Onboarding 2</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/713a69f0-d043-4d18-b84a-056f07076324" width="140"/>
+      <br/><sub>Onboarding 3</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/244857db-eef8-434d-bb7e-bd0acdd1027f" width="140"/>
+      <br/><sub>Onboarding 4</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🌙 Bienvenida (Modo Claro & Oscuro)
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/edea1603-d44d-46c9-8b50-e727366a0f37" width="140"/>
+      <br/><sub>Bienvenida clara</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/183f0a7a-680f-4bda-b68f-164fa1bc1f6a" width="140"/>
+      <br/><sub>Bienvenida clara 2</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/1c5f576c-39c7-41ab-a840-4b8ff539acc5" width="140"/>
+      <br/><sub>Bienvenida oscura</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/756341be-27cb-411e-a2c9-6d828ab16cf7" width="140"/>
+      <br/><sub>Bienvenida oscura 2</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 📚 Historial
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/db009d2c-d4f8-449a-aa6a-0ec2e0a03121" width="140"/>
+      <br/><sub>Historial 1</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/0a0732bd-f1b5-4a01-8edb-5577f1f53db5" width="140"/>
+      <br/><sub>Historial 2</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 📝 Gestión de productos
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/15ff6a44-7236-49a2-8623-42c4e1489e02" width="140"/>
+      <br/><sub>Editar información</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/65e0df07-fc80-4679-8e2d-65a0eeefd7c2" width="140"/>
+      <br/><sub>Error: no encontrado</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/109ba56d-ff9f-433f-a186-ec7d4889b3bb" width="140"/>
+      <br/><sub>Añadir producto</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/d8cd749d-ea93-4609-86b4-bebffe5c7b63" width="140"/>
+      <br/><sub>Editar producto</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 💸 Gestión de precios
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/943a2db3-b6ed-405e-87bc-5518b4d57c53" width="140"/>
+      <br/><sub>Añadir / actualizar precio</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/860e85f2-d8e1-4115-9e02-36372946cc13" width="140"/>
+      <br/><sub>Dropdown supermercados</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/d3e68043-d694-4551-ac6a-c7fb990c7a04" width="140"/>
+      <br/><sub>Perfil y ajustes</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## ⚖️ Comparador de precios
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/4f141229-ceff-472c-8dae-2360ef7c506f" width="140"/>
+      <br/><sub>Comparador</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/3bed97e8-e9a7-4638-9123-14530fb55db8" width="140"/>
+      <br/><sub>Comparativa detallada</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/18502850-9b56-4c6c-8f2b-df202c0d3d74" width="140"/>
+      <br/><sub>Favoritos</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/e3886cd5-8239-4f03-a0db-c89b0c8fc84e" width="140"/>
+      <br/><sub>Alertas de precio (testing)</sub>
+    </td>
+  </tr>
+</table>
 
 ## Instalación
 
