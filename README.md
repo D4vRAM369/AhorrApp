@@ -1,6 +1,7 @@
 # AhorrApp 💰📱🛒🇮🇨
 
-![](../e616c6a0/README_20251210130500824.png)
+<img width="512" height="512" alt="README_20251210130500824" src="https://github.com/user-attachments/assets/80c9698c-41eb-4eb9-9dd0-da8d35fcdfe5" />
+
 
 ![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue)
 [![Android](https://img.shields.io/badge/Android-API%2024+-3DDC84?logo=android)](https://developer.android.com/) [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-7F52FF?logo=kotlin)](https://kotlinlang.org/) [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5.0-4285F4?logo=android)](https://developer.android.com/jetpack/compose) [![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/) [![OpenFoodFacts](https://img.shields.io/badge/OpenFoodFacts-API-00A65A)](https://world.openfoodfacts.org/) [![](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4)](https://img.shields.io/badge/Made_with_Love_&_Coffee-ff69b4) ![Project-Based Learning](https://img.shields.io/badge/Project--Based_Learning-FF8C00?style=flat)
@@ -182,7 +183,7 @@ cd ahorrapp
 ### Configuración Inicial
 
 1. **Primera ejecución**: La app te guiará con un onboarding completo
-2. **Licencia**: Registra tu dispositivo para acceder a todas las funciones
+2. **Licencia**: Registra tu dispositivo para acceder a todas las funciones _(es automático con la instalación)_
 3. **Permisos**: Concede acceso a la cámara para escanear productos
 4. **Sincronización**: Los datos comunitarios se descargarán automáticamente
 
