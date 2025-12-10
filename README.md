@@ -103,7 +103,7 @@ Explicadas en mayor profundidad arriba, especialmente lo de añadir productos nu
 - **Comparación inteligente** de precios que indica diferencias entre precios de distintos supermercados en el producto seleccionado.
 - **Historial personal** para rastrear tus mejores compras
 - **Base de datos comunitaria** con precios reales de usuarios
-- **Alertas automáticas** cuando bajan los precios de tus productos favoritos ***🚧 EN FASE DE PRUEBA Y DESARROLLO 🚧***
+- **Alertas automáticas** cuando bajan los precios de tus productos favoritos *🚧 En fase de prueba 🚧*
 
 ### 📱 Experiencia Moderna y Fluida
 
