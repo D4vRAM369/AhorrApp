@@ -15,8 +15,6 @@
 ![Antigravity IDE](https://img.shields.io/badge/Antigravity%20IDE-121212?style=for-the-badge&logo=jetbrains&logoColor=white)
 ![Gran Canaria](https://img.shields.io/badge/Gran%20Canaria-🇮🇨-FFDD00?style=for-the-badge)![Made by D4vRAM](https://img.shields.io/badge/Made%20by-D4vRAM369-006CFF?style=for-the-badge&logo=github&logoColor=white)
 
-[🇬🇧🇺🇸 English version](/D4vRAM369/ahorrapp/blob/main/README_English-version.md)
-
 ## Tabla de Contenidos
 
 - [¿Qué es AhorrApp?](#qué-es-ahorrapp)
