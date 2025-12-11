@@ -161,6 +161,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                     productName = currentProduct?.name,
                     brand = currentProduct?.brand,
                     moreInfo = currentProduct?.moreInfo,
+                    deviceId = deviceId, // Nuevo para v1.1
                     nickname = _currentNickname.value // Enviamos nickname
                 )
             }
@@ -174,8 +175,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 supermarket = supermarket,
                 price = price,
                 productName = originalEntry.productName,
-                brand = null, 
+                brand = null,
                 moreInfo = null,
+                deviceId = deviceId, // Nuevo para v1.1
                 nickname = _currentNickname.value
             )
         }
@@ -190,6 +192,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 productName = entry.productName,
                 brand = null, // Entry doesn't store brand yet, maybe later
                 moreInfo = null, // Entry doesn't store moreInfo yet
+                deviceId = deviceId, // Nuevo para v1.1
                 nickname = _currentNickname.value
             )
             launch(Dispatchers.Main) {
