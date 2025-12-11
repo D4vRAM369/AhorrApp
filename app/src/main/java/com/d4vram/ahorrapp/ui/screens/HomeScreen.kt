@@ -203,13 +203,35 @@ fun HomeScreen(
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Black)
                 ) {
                     Image(
-                        painter = painterResource(id = R.mipmap.ic_github), 
-                        contentDescription = null, 
+                        painter = painterResource(id = R.mipmap.ic_github),
+                        contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text("GitHub Profile", color = androidx.compose.ui.graphics.Color.White)
                 }
+            }
+
+            // Nuevo botón para el repositorio de AhorrApp
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { uriHandler.openUri("https://github.com/D4vRAM369/AhorrApp/") },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF238636) // Verde GitHub
+                ),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Image(
+                    painter = painterResource(id = R.mipmap.ic_github),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.size(12.dp))
+                Text(
+                    "📱 Ver Repositorio de AhorrApp",
+                    color = androidx.compose.ui.graphics.Color.White,
+                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                )
             }
 
             androidx.compose.material3.AssistChip(
