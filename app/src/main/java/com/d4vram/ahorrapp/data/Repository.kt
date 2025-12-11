@@ -87,6 +87,7 @@ class Repository(context: Context) {
 
     private val db = AppDatabase.getInstance(context)
     private val priceDao = db.priceDao()
+    private val productDao = db.productDao()
 
     suspend fun postPrice(
         barcode: String,
@@ -147,7 +148,18 @@ class Repository(context: Context) {
     }
 
     suspend fun fetchProduct(barcode: String): ProductInfo? {
-        // 1. Intentar con OpenFoodFacts
+        // 1. Primero buscar en nuestra base de datos local de productos
+        val localProduct = productDao.getProductByBarcode(barcode)
+        if (localProduct != null) {
+            return ProductInfo(
+                name = localProduct.name,
+                brand = localProduct.brand,
+                moreInfo = localProduct.moreInfo,
+                imageUrl = localProduct.imageUrl
+            )
+        }
+
+        // 2. Intentar con OpenFoodFacts
         val response = try {
             openFoodApi.fetchProduct(barcode)
         } catch (e: Exception) {
@@ -163,7 +175,7 @@ class Repository(context: Context) {
             }
         }
 
-        // 2. Si falla, intentar buscar en nuestra base de datos (Supabase)
+        // 3. Si falla, intentar buscar en Supabase
         // Buscamos si ya existe algún precio registrado para este código, y cogemos su nombre
         return runCatching {
             val existingEntry = supabase.from("prices").select {
@@ -175,7 +187,7 @@ class Repository(context: Context) {
             }.decodeList<SupabasePriceEntry>().firstOrNull()
 
             if (existingEntry != null && !existingEntry.productName.isNullOrBlank()) {
-                 ProductInfo(
+                  ProductInfo(
                     name = existingEntry.productName,
                     brand = existingEntry.brand,
                     moreInfo = existingEntry.moreInfo
@@ -470,4 +482,41 @@ class Repository(context: Context) {
 
         return alertsToNotify
     }
+
+    // --- FUNCIONES PARA PRODUCTOS LOCALES ---
+
+    suspend fun saveLocalProduct(
+        barcode: String,
+        name: String,
+        brand: String? = null,
+        moreInfo: String? = null,
+        imageUrl: String? = null
+    ) {
+        val product = ProductEntity(
+            barcode = barcode,
+            name = name,
+            brand = brand,
+            moreInfo = moreInfo,
+            imageUrl = imageUrl
+        )
+        productDao.insert(product)
+    }
+
+    suspend fun getLocalProduct(barcode: String): ProductEntity? {
+        return productDao.getProductByBarcode(barcode)
+    }
+
+    suspend fun updateLocalProduct(product: ProductEntity) {
+        productDao.update(product)
+    }
+
+    suspend fun deleteLocalProduct(barcode: String) {
+        productDao.deleteByBarcode(barcode)
+    }
+
+    fun observeLocalProducts(): Flow<List<ProductEntity>> = productDao.observeAll()
+
+    fun searchLocalProducts(query: String): Flow<List<ProductEntity>> = productDao.searchProducts(query)
+
+    suspend fun getLocalProductCount(): Int = productDao.getProductCount()
 }
