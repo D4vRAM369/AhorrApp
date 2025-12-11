@@ -2,6 +2,7 @@ package com.d4vram.ahorrapp.data
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.serialization.json.Json
 import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
@@ -17,6 +18,14 @@ import kotlinx.serialization.Serializable
 // Removed unused kotlinx.datetime imports
 import io.github.jan.supabase.postgrest.query.Order
 
+// Función de extensión para obtener Device ID
+fun Context.getDeviceId(): String {
+    return Settings.Secure.getString(
+        this.contentResolver,
+        Settings.Secure.ANDROID_ID
+    ) ?: "unknown_device"
+}
+
 @Serializable
 data class SupabasePriceEntry(
     val id: Long? = null, // Added to avoid strict parsing errors
@@ -26,6 +35,7 @@ data class SupabasePriceEntry(
     @SerialName("product_name") val productName: String? = null,
     val brand: String? = null,
     @SerialName("more_info") val moreInfo: String? = null,
+    @SerialName("device_id") val deviceId: String? = null, // Nuevo para v1.1
     val nickname: String? = null, // Campo nuevo para la firma del autor
     @SerialName("created_at") val createdAt: String? = null
 )
@@ -96,6 +106,7 @@ class Repository(context: Context) {
         productName: String?,
         brand: String?,
         moreInfo: String?,
+        deviceId: String, // Nuevo parámetro requerido para v1.1
         nickname: String? // Recibimos el autor
     ): Boolean {
         var remoteSuccess = true
@@ -108,6 +119,7 @@ class Repository(context: Context) {
                     productName = productName,
                     brand = brand,
                     moreInfo = moreInfo,
+                    deviceId = deviceId,
                     nickname = nickname
                 )
             )
