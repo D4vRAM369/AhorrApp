@@ -48,6 +48,11 @@ import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
+import android.Manifest
+import android.os.Build
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.core.app.NotificationManagerCompat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,6 +125,56 @@ fun ProfileScreen(
             // Sección Estadísticas
             Text("Estadísticas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             StatsCard(history)
+
+            Spacer(Modifier.height(10.dp))
+
+            // Sección Notificaciones
+            Text("Notificaciones", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            // Permiso de notificaciones
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (areNotificationsEnabled)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else
+                            MaterialTheme.colorScheme.errorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            "Estado de notificaciones: ${if (areNotificationsEnabled) "Activadas ✅" else "Desactivadas ❌"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Las notificaciones te avisan cuando bajan los precios de tus productos favoritos.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        if (!areNotificationsEnabled) {
+                            Spacer(Modifier.height(12.dp))
+                            Button(
+                                onClick = {
+                                    // Abrir configuración de notificaciones de la app
+                                    val intent = Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                        putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                    }
+                                    context.startActivity(intent)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text("Activar Notificaciones")
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(Modifier.height(10.dp))
 
