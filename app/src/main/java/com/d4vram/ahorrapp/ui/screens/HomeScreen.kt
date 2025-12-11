@@ -234,11 +234,6 @@ fun HomeScreen(
                 )
             }
 
-            androidx.compose.material3.AssistChip(
-                onClick = { /* Repo not created yet */ },
-                label = { Text("Repositorio del proyecto (Pronto)") },
-                leadingIcon = { Icon(Icons.Default.Code, null) }
-            )
         }
     }
 }

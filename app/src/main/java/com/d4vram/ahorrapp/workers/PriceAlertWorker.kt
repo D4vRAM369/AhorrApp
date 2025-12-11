@@ -26,6 +26,12 @@ class PriceAlertWorker(
 
     override suspend fun doWork(): androidx.work.ListenableWorker.Result {
         return try {
+            // Verificar si las notificaciones están habilitadas
+            if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                // Si no están habilitadas, no hacer nada
+                return androidx.work.ListenableWorker.Result.success()
+            }
+
             // Crear canal de notificaciones si es necesario
             createNotificationChannel()
 
@@ -35,18 +41,21 @@ class PriceAlertWorker(
             // Verificar alertas de precio
             val alertsToNotify = repository.checkPriceAlerts()
 
-            // Enviar notificaciones para cada alerta
-            alertsToNotify.forEach { (alert, price, dropPercentage) ->
-                sendPriceAlertNotification(alert.barcode, price.productName ?: "Producto", price.price, dropPercentage)
+            if (alertsToNotify.isNotEmpty()) {
+                // Enviar notificaciones para cada alerta
+                alertsToNotify.forEach { (alert, price, dropPercentage) ->
+                    sendPriceAlertNotification(alert.barcode, price.productName ?: "Producto", price.price, dropPercentage)
 
-                // Marcar que se envió la alerta
-                repository.updateLastAlertTime(alert.deviceId, alert.barcode)
+                    // Marcar que se envió la alerta
+                    repository.updateLastAlertTime(alert.deviceId, alert.barcode)
+                }
             }
 
             androidx.work.ListenableWorker.Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
-            androidx.work.ListenableWorker.Result.failure()
+            // Reintentar en caso de error temporal
+            androidx.work.ListenableWorker.Result.retry()
         }
     }
 
@@ -69,15 +78,19 @@ class PriceAlertWorker(
         val notificationId = barcode.hashCode() // ID único por producto
 
         val title = "¡Precio bajado! 📉"
-        val message = "$productName ahora cuesta ${String.format("%.2f", newPrice)}€ (-${String.format("%.1f", dropPercentage)}%)"
+        val shortMessage = "$productName: ${String.format("%.2f", newPrice)}€"
+        val fullMessage = "$productName ahora cuesta ${String.format("%.2f", newPrice)}€ " +
+                         "(-${String.format("%.1f", dropPercentage)}% de descuento)"
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_ahorrapp_foreground)
             .setContentTitle(title)
-            .setContentText(message)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setContentText(shortMessage)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(fullMessage))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setWhen(System.currentTimeMillis())
+            .setShowWhen(true)
 
         try {
             with(NotificationManagerCompat.from(context)) {
@@ -85,7 +98,9 @@ class PriceAlertWorker(
             }
         } catch (e: SecurityException) {
             // El usuario no ha concedido permisos de notificaciones
-            e.printStackTrace()
+            android.util.Log.w("PriceAlertWorker", "No se pudieron enviar notificaciones: permisos no concedidos")
+        } catch (e: Exception) {
+            android.util.Log.e("PriceAlertWorker", "Error al enviar notificación", e)
         }
     }
 }
