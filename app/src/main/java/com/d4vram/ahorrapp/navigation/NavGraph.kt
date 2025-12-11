@@ -1,56 +1,34 @@
 package com.d4vram.ahorrapp.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.d4vram.ahorrapp.ui.screens.HistoryScreen
-import com.d4vram.ahorrapp.ui.screens.HomeScreen
-import com.d4vram.ahorrapp.ui.screens.OnboardingScreen
-import com.d4vram.ahorrapp.ui.screens.PriceEntryScreen
-import com.d4vram.ahorrapp.ui.screens.ScannerScreen
-import com.d4vram.ahorrapp.ui.screens.WelcomeScreen
-import com.d4vram.ahorrapp.ui.screens.FavoritesScreen
-import com.d4vram.ahorrapp.ui.screens.LockScreen
-import androidx.compose.runtime.LaunchedEffect
-
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import com.d4vram.ahorrapp.viewmodel.TpvViewModel
+import com.d4vram.ahorrapp.viewmodel.rememberTpvViewModel
+import com.d4vram.ahorrapp.ui.screens.*
 
 @Composable
-fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewModel) {
-
-    // --- SOLUTION ---
-    // Move the LaunchedEffect here, into the Composable scope of NavGraph
-    val isLocked by viewModel.isAppLocked.collectAsState()
+fun NavGraph(navController: NavHostController, padding: androidx.compose.foundation.layout.PaddingValues, viewModel: TpvViewModel) {
     val showOnboarding by viewModel.showOnboarding.collectAsState()
 
-    LaunchedEffect(isLocked) {
-        if (isLocked) {
-            nav.navigate("lock") {
-                popUpTo(0) // Clear backstack so user can't go back
-            }
-        }
-    }
-
     NavHost(
-        navController = nav,
+        navController = navController,
         startDestination = if (showOnboarding) "onboarding" else "welcome"
     ) {
-
         composable("onboarding") {
             OnboardingScreen(
                 onFinish = {
-                    viewModel.completeOnboarding()
-                    nav.navigate("welcome") {
+                    navController.navigate("welcome") {
                         popUpTo("onboarding") { inclusive = true }
                     }
                 },
                 onSkip = {
                     viewModel.completeOnboarding()
-                    nav.navigate("welcome") {
+                    navController.navigate("welcome") {
                         popUpTo("onboarding") { inclusive = true }
                     }
                 }
@@ -58,58 +36,73 @@ fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewM
         }
 
         composable("welcome") {
-            WelcomeScreen(onContinue = { nav.navigate("home") })
+            WelcomeScreen(onContinue = { navController.navigate("home") })
         }
-
-        composable("lock") {
-            LockScreen(deviceId = viewModel.getDeviceIdStr())
-        }
-
-        // The LaunchedEffect that was causing the error has been moved out.
 
         composable("home") {
             val isDarkMode by viewModel.isDarkMode.collectAsState()
-            HomeScreen(
-                onScan = { nav.navigate("scanner") },
-                onHistory = { nav.navigate("history") },
-                onComparison = { nav.navigate("comparison") },
-                onFavorites = { nav.navigate("favorites") },
-                isDarkMode = isDarkMode,
-                onToggleTheme = { viewModel.toggleDarkMode() }
-            )
+            val currentPushMessage by viewModel.currentPushMessage.collectAsState()
+
+            if (currentPushMessage != null) {
+                PushMessageScreen(
+                    message = currentPushMessage!!,
+                    onDismiss = { viewModel.dismissPushMessage() },
+                    viewModel = viewModel
+                )
+            } else {
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    viewModel.loadPushMessagesForWelcome()
+                }
+                HomeScreen(
+                    onScan = { navController.navigate("scanner") },
+                    onHistory = { navController.navigate("history") },
+                    onComparison = { navController.navigate("comparison") },
+                    onFavorites = { navController.navigate("favorites") },
+                    onSettings = { navController.navigate("profile") },
+                    isDarkMode = isDarkMode,
+                    onToggleTheme = { viewModel.toggleDarkMode() }
+                )
+            }
         }
 
         composable("scanner") {
             ScannerScreen { barcode ->
-                nav.navigate("entry/$barcode")
+                navController.navigate("entry/$barcode")
             }
         }
 
-        composable("entry/{barcode}") { backStack ->
-            val code = backStack.arguments?.getString("barcode") ?: ""
-            PriceEntryScreen(barcode = code, onDone = { nav.popBackStack() })
-        }
-
-        composable("history") {
-            HistoryScreen(onSettingsClick = { nav.navigate("profile") })
-        }
-
-        composable("comparison") {
-            com.d4vram.ahorrapp.ui.screens.ComparisonScreen(
-                viewModel = viewModel,
-                onBack = { nav.popBackStack() }
+        composable("entry/{barcode}") { backStackEntry ->
+            val barcode = backStackEntry.arguments?.getString("barcode") ?: ""
+            PriceEntryScreen(
+                barcode = barcode,
+                onDone = { navController.popBackStack() },
+                viewModel = viewModel
             )
         }
 
-        composable("profile") {
-            com.d4vram.ahorrapp.ui.screens.ProfileScreen(onBack = { nav.popBackStack() })
+        composable("history") {
+            HistoryScreen(
+                viewModel = viewModel,
+                onSettingsClick = { navController.navigate("profile") }
+            )
+        }
+
+        composable("comparison") {
+            ComparisonScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable("favorites") {
             FavoritesScreen(
                 viewModel = viewModel,
-                onBack = { nav.popBackStack() }
+                onBack = { navController.popBackStack() }
             )
+        }
+
+        composable("profile") {
+            ProfileScreen(onBack = { navController.popBackStack() })
         }
     }
 }

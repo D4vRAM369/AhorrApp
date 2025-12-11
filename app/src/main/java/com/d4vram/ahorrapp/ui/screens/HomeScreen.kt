@@ -2,7 +2,6 @@ package com.d4vram.ahorrapp.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,30 +13,42 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.d4vram.ahorrapp.R
-
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import com.d4vram.ahorrapp.R
 
 @Composable
 fun HomeScreen(
@@ -45,6 +56,7 @@ fun HomeScreen(
     onHistory: () -> Unit,
     onComparison: () -> Unit,
     onFavorites: () -> Unit,
+    onSettings: () -> Unit,
     isDarkMode: Boolean,
     onToggleTheme: () -> Unit
 ) {
@@ -69,18 +81,34 @@ fun HomeScreen(
                 Text("AhorrApp", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text("Escanea, comparte y ahorra en Canarias", style = MaterialTheme.typography.bodyMedium)
             }
-            // Switch keeps its size
-            Switch(
-                checked = isDarkMode,
-                onCheckedChange = { onToggleTheme() },
-                thumbContent = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Switch keeps its size
+                Switch(
+                    checked = isDarkMode,
+                    onCheckedChange = { onToggleTheme() },
+                    thumbContent = {
+                        Icon(
+                            imageVector = if (isDarkMode) Icons.Filled.Nightlight else Icons.Filled.WbSunny,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                )
+
+                androidx.compose.material3.IconButton(
+                    onClick = onSettings,
+                    modifier = Modifier.size(24.dp)
+                ) {
                     Icon(
-                        imageVector = if (isDarkMode) Icons.Filled.Nightlight else Icons.Filled.WbSunny,
-                        contentDescription = null,
-                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Ajustes",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            )
+            }
         }
 
         Card(
