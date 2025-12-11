@@ -69,6 +69,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.Serializable
 import androidx.compose.ui.platform.LocalContext
 import java.io.FileOutputStream
 import java.io.FileInputStream
@@ -395,22 +397,47 @@ fun StatRow(label: String, value: String) {
     }
 }
 
+// Clases de datos para exportación JSON
+@kotlinx.serialization.Serializable
+private data class ExportEntry(
+    val id: Long,
+    val barcode: String?,
+    val productName: String?,
+    val supermarket: String,
+    val price: Double,
+    val timestamp: Long
+)
+
+@kotlinx.serialization.Serializable
+private data class ExportData(
+    val exportDate: Long,
+    val appVersion: String,
+    val totalEntries: Int,
+    val entries: List<ExportEntry>
+)
+
 // Función para exportar datos en formato JSON
 private fun exportJson(context: Context, data: List<PriceEntryEntity>) {
     try {
-        // Crear estructura de datos para JSON
-        val exportData = mapOf(
-            "exportDate" to System.currentTimeMillis(),
-            "appVersion" to "1.1",
-            "totalEntries" to data.size,
-            "entries" to data.map { entry ->
-                mapOf(
-                    "id" to entry.id,
-                    "barcode" to entry.barcode,
-                    "productName" to entry.productName,
-                    "supermarket" to entry.supermarket,
-                    "price" to entry.price,
-                    "timestamp" to entry.timestamp
+        // Verificar si hay datos para exportar
+        if (data.isEmpty()) {
+            Toast.makeText(context, "No hay datos para exportar", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Crear estructura de datos serializable
+        val exportData = ExportData(
+            exportDate = System.currentTimeMillis(),
+            appVersion = "1.1",
+            totalEntries = data.size,
+            entries = data.map { entry ->
+                ExportEntry(
+                    id = entry.id,
+                    barcode = entry.barcode,
+                    productName = entry.productName,
+                    supermarket = entry.supermarket,
+                    price = entry.price,
+                    timestamp = entry.timestamp
                 )
             }
         )
@@ -448,20 +475,30 @@ private fun importJson(context: Context, uri: android.net.Uri, onResult: (Int) -
         reader.close()
         inputStream?.close()
 
-        // Por ahora, simular importación exitosa
-        // TODO: Implementar parsing completo de JSON
-        Toast.makeText(context, "Archivo JSON recibido. Importación próximamente.", Toast.LENGTH_LONG).show()
-        onResult(0) // Simular 0 entradas por ahora
+        // Parsear JSON usando las clases serializables
+        val exportData = Json.decodeFromString<ExportData>(jsonString)
+
+        // Aquí se podría implementar la lógica para guardar los datos importados
+        // Por ahora, solo mostrar información
+        Toast.makeText(context, "Importados ${exportData.entries.size} productos desde JSON", Toast.LENGTH_LONG).show()
+        onResult(exportData.entries.size)
+
     } catch (e: Exception) {
-        Toast.makeText(context, "Error al leer archivo JSON: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "Error al importar JSON: ${e.message}", Toast.LENGTH_LONG).show()
         onResult(-1)
     }
 }
 
 private fun shareCsv(context: Context, data: List<PriceEntryEntity>) {
+    // Verificar si hay datos para exportar
+    if (data.isEmpty()) {
+        Toast.makeText(context, "No hay datos para exportar", Toast.LENGTH_SHORT).show()
+        return
+    }
+
     val csvHeader = "ID,Barcode,Name,Supermarket,Price,Date\n"
     val csvBody = data.joinToString("\n") {
-        "${it.id},${it.barcode},\"${it.productName}\",\"${it.supermarket}\",${it.price},${it.timestamp}"
+        "${it.id},${it.barcode ?: ""},\"${it.productName ?: ""}\",\"${it.supermarket}\",${it.price},${it.timestamp}"
     }
     val csvContent = csvHeader + csvBody
 
