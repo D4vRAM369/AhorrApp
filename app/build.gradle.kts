@@ -1,5 +1,5 @@
-import java.util.Properties
 import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -24,8 +24,8 @@ android {
         applicationId = "com.d4vram.ahorrapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -35,8 +35,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true // ✅ ACTIVADO - Ofusca y reduce código
-            isShrinkResources = true // ✅ ACTIVADO - Elimina recursos no usados
+            isMinifyEnabled = false // ❌ TEMPORALMENTE DESACTIVADO
+            isShrinkResources = false // ❌ TEMPORALMENTE DESACTIVADO
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -14,10 +14,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,11 +30,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -47,6 +58,11 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
 
     var permissionGranted by remember { mutableStateOf(false) }
     var alreadyHandled by remember { mutableStateOf(false) }
+    var showSuccessAnimation by remember { mutableStateOf(false) }
+
+    // Animaciones
+    val scaleAnim = remember { Animatable(1f) }
+    val alphaAnim = remember { Animatable(1f) }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -101,9 +117,33 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
         }
     }
 
+    // Animación de éxito
+    LaunchedEffect(showSuccessAnimation) {
+        if (showSuccessAnimation) {
+            // Animación de escala (crece y vuelve)
+            scaleAnim.animateTo(
+                targetValue = 1.2f,
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+            )
+            scaleAnim.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+            )
+
+            // Esperar un poco y ocultar
+            delay(1500)
+            alphaAnim.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 300)
+            )
+            showSuccessAnimation = false
+            alphaAnim.snapTo(1f) // Reset para próxima vez
+        }
+    }
+
     LaunchedEffect(permissionGranted) {
         if (!permissionGranted) return@LaunchedEffect
-        
+
         runCatching {
             cameraController.bindToLifecycle(lifecycleOwner)
             cameraController.setImageAnalysisAnalyzer(executor, ImageAnalysis.Analyzer { imageProxy ->
@@ -129,6 +169,10 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
                         val code = barcodes.firstOrNull { it.rawValue != null }?.rawValue?.trim()
                         if (!code.isNullOrEmpty() && !alreadyHandled) {
                             alreadyHandled = true
+                            showSuccessAnimation = true
+
+                            // Enviar evento de analytics para escaneo
+                            // Nota: El ViewModel manejará el envío del evento completo cuando se guarde el precio
                             onBarcodeScanned(code)
                         }
                     }
@@ -177,6 +221,38 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
+            }
+        }
+
+        // Animación de éxito 🎉
+        if (showSuccessAnimation) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = scaleAnim.value,
+                        scaleY = scaleAnim.value,
+                        alpha = alphaAnim.value
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    color = Color(0xFF4CAF50), // Verde éxito
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                    modifier = Modifier.size(120.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Escaneo exitoso",
+                            tint = Color.White,
+                            modifier = Modifier.size(60.dp)
+                        )
+                    }
+                }
             }
         }
     }

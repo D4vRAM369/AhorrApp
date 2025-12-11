@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import com.d4vram.ahorrapp.data.PriceEntryEntity
 import com.d4vram.ahorrapp.data.ProductInfo
 import com.d4vram.ahorrapp.data.Repository
-import com.d4vram.ahorrapp.data.PushMessage
 import com.d4vram.ahorrapp.data.UserFavorite
 import com.d4vram.ahorrapp.data.PriceAlert
 import com.d4vram.ahorrapp.data.SupabasePriceEntry
@@ -106,10 +105,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _showOnboarding = MutableStateFlow(true)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
-
-    private val _currentPushMessage = MutableStateFlow<PushMessage?>(null)
-    val currentPushMessage: StateFlow<PushMessage?> = _currentPushMessage.asStateFlow()
-
+    
     // deviceId is already declared at the top of the class
 
     init {
@@ -139,18 +135,36 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadOnboardingState() {
         viewModelScope.launch(Dispatchers.IO) {
             val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
-            val hasCompletedOnboarding = prefs.getBoolean("onboarding_completed", false)
-            _showOnboarding.value = !hasCompletedOnboarding
 
-            // NO verificar mensajes push aquí - se hace en welcome/home
+            // Cargar nickname guardado
+            val savedNickname = prefs.getString("user_nickname", null)
+            if (savedNickname != null) {
+                _currentNickname.value = savedNickname
+            }
+
+            // Contador de aperturas de app
+            val appOpenCount = prefs.getInt("app_open_count", 0) + 1
+            prefs.edit().putInt("app_open_count", appOpenCount).apply()
+
+            val hasCompletedOnboarding = prefs.getBoolean("onboarding_completed", false)
+
+            // Mostrar onboarding si: primera instalación O ≤ 3 aperturas Y no completado
+            val shouldShowOnboarding = (appOpenCount <= 3) && !hasCompletedOnboarding
+
+            _showOnboarding.value = shouldShowOnboarding
         }
+    }
     }
 
     fun completeOnboarding() {
         viewModelScope.launch(Dispatchers.IO) {
             val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
             prefs.edit().putBoolean("onboarding_completed", true).apply()
-            _showOnboarding.value = false
+
+            // Después de completar onboarding, verificar si aún debe mostrarse
+            // (solo si ha abierto la app ≤ 3 veces)
+            val appOpenCount = prefs.getInt("app_open_count", 0)
+            _showOnboarding.value = appOpenCount <= 3
         }
     }
     
@@ -465,43 +479,18 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         workManager.cancelUniqueWork("price_alert_check")
     }
 
-    // Funciones para sistema de mensajes push
-    fun loadPushMessagesForWelcome() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val deviceId = getDeviceIdStr()
-                val unseenMessages = repo.getUnseenPushMessages(deviceId)
-                // Mostrar solo el mensaje más prioritario
-                _currentPushMessage.value = unseenMessages.firstOrNull()
-            } catch (e: Exception) {
-                android.util.Log.d("TpvViewModel", "Failed to load push messages: ${e.message}")
-            }
-        }
-    }
-
-    fun markMessageViewed(messageId: String, action: String = "viewed") {
-        viewModelScope.launch(Dispatchers.IO) {
-            val deviceId = getDeviceIdStr()
-            repo.markMessageViewed(messageId, deviceId, action)
-            _currentPushMessage.value = null
-        }
-    }
-
-    fun dismissPushMessage() {
-        _currentPushMessage.value = null
-    }
-
     companion object {
-        fun provideFactory(app: Application): androidx.lifecycle.ViewModelProvider.Factory =
-            object : androidx.lifecycle.ViewModelProvider.Factory {
+        fun provideFactory(app: Application): androidx.lifecycle.ViewModelProvider.Factory {
+            return object : androidx.lifecycle.ViewModelProvider.Factory {
                 override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                     if (modelClass.isAssignableFrom(TpvViewModel::class.java)) {
                         @Suppress("UNCHECKED_CAST")
                         return TpvViewModel(app) as T
                     }
-                    throw IllegalArgumentException("Unknown ViewModel class: \$modelClass")
+                    throw IllegalArgumentException("Unknown ViewModel class")
                 }
             }
+        }
     }
 
 }
