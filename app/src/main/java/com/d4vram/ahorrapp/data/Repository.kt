@@ -2,6 +2,7 @@ package com.d4vram.ahorrapp.data
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.serialization.json.Json
 import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
@@ -17,6 +18,25 @@ import kotlinx.serialization.Serializable
 // Removed unused kotlinx.datetime imports
 import io.github.jan.supabase.postgrest.query.Order
 
+// Data class para PushMessage
+data class PushMessage(
+    val id: String,
+    val title: String,
+    val message: String,
+    val messageType: String = "info",
+    val linkUrl: String? = null,
+    val linkText: String? = null,
+    val priority: Int = 0
+)
+
+// Función de extensión para obtener Device ID
+fun Context.getDeviceId(): String {
+    return Settings.Secure.getString(
+        this.contentResolver,
+        Settings.Secure.ANDROID_ID
+    ) ?: "unknown_device"
+}
+
 @Serializable
 data class SupabasePriceEntry(
     val id: Long? = null, // Added to avoid strict parsing errors
@@ -26,6 +46,7 @@ data class SupabasePriceEntry(
     @SerialName("product_name") val productName: String? = null,
     val brand: String? = null,
     @SerialName("more_info") val moreInfo: String? = null,
+    @SerialName("device_id") val deviceId: String? = null, // Nuevo para v1.1
     val nickname: String? = null, // Campo nuevo para la firma del autor
     @SerialName("created_at") val createdAt: String? = null
 )
@@ -87,6 +108,29 @@ class Repository(context: Context) {
 
     private val db = AppDatabase.getInstance(context)
     private val priceDao = db.priceDao()
+    private val productDao = db.productDao()
+
+    // Función para enviar eventos de analytics
+    suspend fun sendAnalyticsEvent(
+        deviceId: String,
+        eventType: String,
+        eventData: Map<String, Any> = emptyMap(),
+        sessionId: String? = null
+    ) {
+        try {
+            supabase.from("analytics_events").insert(
+                mapOf(
+                    "device_id" to deviceId,
+                    "event_type" to eventType,
+                    "event_data" to eventData,
+                    "session_id" to sessionId
+                )
+            )
+        } catch (e: Exception) {
+            // Silenciar errores de analytics para no afectar UX principal
+            android.util.Log.d("Repository", "Analytics event failed: ${e.message}")
+        }
+    }
 
     suspend fun postPrice(
         barcode: String,
@@ -95,6 +139,7 @@ class Repository(context: Context) {
         productName: String?,
         brand: String?,
         moreInfo: String?,
+        deviceId: String, // Nuevo parámetro requerido para v1.1
         nickname: String? // Recibimos el autor
     ): Boolean {
         var remoteSuccess = true
@@ -107,7 +152,20 @@ class Repository(context: Context) {
                     productName = productName,
                     brand = brand,
                     moreInfo = moreInfo,
+                    deviceId = deviceId,
                     nickname = nickname
+                )
+            )
+
+            // Enviar evento de analytics si la subida fue exitosa
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = "price_reported",
+                eventData = mapOf(
+                    "barcode" to barcode,
+                    "supermarket" to supermarket,
+                    "price" to price,
+                    "has_product_name" to (productName != null)
                 )
             )
         }.onFailure {
@@ -147,7 +205,18 @@ class Repository(context: Context) {
     }
 
     suspend fun fetchProduct(barcode: String): ProductInfo? {
-        // 1. Intentar con OpenFoodFacts
+        // 1. Primero buscar en nuestra base de datos local de productos
+        val localProduct = productDao.getProductByBarcode(barcode)
+        if (localProduct != null) {
+            return ProductInfo(
+                name = localProduct.name,
+                brand = localProduct.brand,
+                moreInfo = localProduct.moreInfo,
+                imageUrl = localProduct.imageUrl
+            )
+        }
+
+        // 2. Intentar con OpenFoodFacts
         val response = try {
             openFoodApi.fetchProduct(barcode)
         } catch (e: Exception) {
@@ -163,7 +232,7 @@ class Repository(context: Context) {
             }
         }
 
-        // 2. Si falla, intentar buscar en nuestra base de datos (Supabase)
+        // 3. Si falla, intentar buscar en Supabase
         // Buscamos si ya existe algún precio registrado para este código, y cogemos su nombre
         return runCatching {
             val existingEntry = supabase.from("prices").select {
@@ -175,7 +244,7 @@ class Repository(context: Context) {
             }.decodeList<SupabasePriceEntry>().firstOrNull()
 
             if (existingEntry != null && !existingEntry.productName.isNullOrBlank()) {
-                 ProductInfo(
+                  ProductInfo(
                     name = existingEntry.productName,
                     brand = existingEntry.brand,
                     moreInfo = existingEntry.moreInfo
@@ -286,6 +355,17 @@ class Repository(context: Context) {
                     productName = productName
                 )
             )
+
+            // Enviar evento de analytics
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = "favorite_added",
+                eventData = mapOf(
+                    "barcode" to barcode as Any,
+                    "product_name" to (productName ?: "") as Any
+                )
+            )
+
             true
         }.getOrDefault(false)
     }
@@ -298,6 +378,14 @@ class Repository(context: Context) {
                     eq("barcode", barcode)
                 }
             }
+
+            // Enviar evento de analytics
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = "favorite_removed",
+                eventData = mapOf("barcode" to barcode)
+            )
+
             true
         }.getOrDefault(false)
     }
@@ -337,6 +425,8 @@ class Repository(context: Context) {
                 }
             }.decodeSingleOrNull<PriceAlert>()
 
+            val isUpdate = existing != null
+
             if (existing != null) {
                 // Update existing
                 supabase.from("price_alerts").update(
@@ -362,6 +452,19 @@ class Repository(context: Context) {
                     )
                 )
             }
+
+            // Enviar evento de analytics
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = if (isUpdate) "alert_updated" else "alert_created",
+                eventData = mapOf(
+                    "barcode" to barcode as Any,
+                    "target_price" to (targetPrice ?: 0.0) as Any,
+                    "alert_percentage" to alertPercentage as Any,
+                    "is_update" to isUpdate as Any
+                )
+            )
+
             true
         }.getOrDefault(false)
     }
@@ -469,5 +572,139 @@ class Repository(context: Context) {
         }
 
         return alertsToNotify
+    }
+
+    // --- FUNCIONES PARA PRODUCTOS LOCALES ---
+
+    suspend fun saveLocalProduct(
+        barcode: String,
+        name: String,
+        brand: String? = null,
+        moreInfo: String? = null,
+        imageUrl: String? = null
+    ) {
+        val product = ProductEntity(
+            barcode = barcode,
+            name = name,
+            brand = brand,
+            moreInfo = moreInfo,
+            imageUrl = imageUrl
+        )
+        productDao.insert(product)
+    }
+
+    suspend fun getLocalProduct(barcode: String): ProductEntity? {
+        return productDao.getProductByBarcode(barcode)
+    }
+
+    suspend fun updateLocalProduct(product: ProductEntity) {
+        productDao.update(product)
+    }
+
+    suspend fun deleteLocalProduct(barcode: String) {
+        productDao.deleteByBarcode(barcode)
+    }
+
+    fun observeLocalProducts(): Flow<List<ProductEntity>> = productDao.observeAll()
+
+    fun searchLocalProducts(query: String): Flow<List<ProductEntity>> = productDao.searchProducts(query)
+
+    suspend fun getLocalProductCount(): Int = productDao.getProductCount()
+
+    // Funciones helper para métricas de usuario
+    suspend fun getUserTotalScans(deviceId: String): Int {
+        return runCatching {
+            supabase.from("analytics_events")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .count { (it["event_type"] as? String) == "price_reported" }
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserUniqueProducts(deviceId: String): Int {
+        return runCatching {
+            supabase.from("prices")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .distinctBy { it["barcode"] as? String }
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserTotalContributions(deviceId: String): Int {
+        return runCatching {
+            supabase.from("prices")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserTotalFavorites(deviceId: String): Int {
+        return runCatching {
+            supabase.from("user_favorites")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserTotalAlerts(deviceId: String): Int {
+        return runCatching {
+            supabase.from("price_alerts")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun updateUserAnalytics(
+        deviceId: String,
+        totalScans: Int,
+        uniqueProducts: Int,
+        totalContributions: Int,
+        totalFavorites: Int,
+        totalAlerts: Int
+    ) {
+        try {
+            // Intentar actualizar primero
+            val existing = supabase.from("user_analytics")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeSingleOrNull<Map<String, Any>>()
+
+            val analyticsData = mapOf(
+                "device_id" to deviceId,
+                "total_scans" to totalScans,
+                "unique_products_scanned" to uniqueProducts,
+                "total_prices_reported" to totalContributions,
+                "total_favorites_added" to totalFavorites,
+                "total_alerts_created" to totalAlerts,
+                "updated_at" to "now()"
+            )
+
+            if (existing != null) {
+                // Update existing
+                supabase.from("user_analytics").update(analyticsData) {
+                    filter { eq("device_id", deviceId) }
+                }
+            } else {
+                // Insert new
+                supabase.from("user_analytics").insert(analyticsData)
+            }
+        } catch (e: Exception) {
+            // Silenciar errores de analytics
+            android.util.Log.d("Repository", "Failed to update user analytics: ${e.message}")
+        }
+    }
+
+    // Funciones para sistema de mensajes push
+    suspend fun getUnseenPushMessages(deviceId: String): List<PushMessage> {
+        // Por ahora devolver lista vacía - los mensajes se manejarán desde Supabase directamente
+        return emptyList()
+    }
+
+    suspend fun markMessageViewed(messageId: String, deviceId: String, action: String = "viewed") {
+        // Simplemente loggear por ahora
+        android.util.Log.d("Repository", "Message $messageId marked as $action by $deviceId")
     }
 }

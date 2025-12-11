@@ -48,6 +48,32 @@ import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
+import android.Manifest
+import android.os.Build
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.core.app.NotificationManagerCompat
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import androidx.compose.ui.platform.LocalContext
+import java.io.FileOutputStream
+import java.io.FileInputStream
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +95,20 @@ fun ProfileScreen(
                     Toast.makeText(context, "$count precios importados correctamente", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Error al importar el archivo CSV", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    val jsonLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            importJson(context, it) { count ->
+                if (count >= 0) {
+                    Toast.makeText(context, "$count entradas JSON procesadas", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Error al importar archivo JSON", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -120,6 +160,169 @@ fun ProfileScreen(
             // Sección Estadísticas
             Text("Estadísticas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             StatsCard(history)
+
+            Spacer(Modifier.height(10.dp))
+
+            // Sección Notificaciones
+            Text("Notificaciones", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            // Permiso de notificaciones
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (areNotificationsEnabled)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else
+                            MaterialTheme.colorScheme.errorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Notificaciones",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                if (areNotificationsEnabled) "✅ ON" else "❌ OFF",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (areNotificationsEnabled)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Text(
+                            "Recibe alertas cuando bajen los precios de tus productos favoritos.",
+                            style = MaterialTheme.typography.bodySmall,
+                            lineHeight = MaterialTheme.typography.bodySmall.lineHeight * 1.2f
+                        )
+
+                        if (!areNotificationsEnabled) {
+                            Spacer(Modifier.height(12.dp))
+                            Button(
+                                onClick = {
+                                    val intent = Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                        putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                    }
+                                    context.startActivity(intent)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                ),
+                                modifier = Modifier.fillMaxWidth(0.8f)
+                            ) {
+                                Text(
+                                    "Activar Notificaciones",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Sección Ajustes Avanzados
+            Text("Ajustes avanzados", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            // Chip de ajustes con menú desplegable
+            var showSettingsMenu by remember { mutableStateOf(false) }
+
+            AssistChip(
+                onClick = { showSettingsMenu = true },
+                label = { Text("⚙️ Ajustes") },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Ajustes",
+                        modifier = Modifier.size(18.dp)
+                    )
+                },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                modifier = Modifier.fillMaxWidth(0.6f)
+            )
+
+            // Menú desplegable de ajustes
+            DropdownMenu(
+                expanded = showSettingsMenu,
+                onDismissRequest = { showSettingsMenu = false }
+            ) {
+                // Opción para modificar nickname
+                DropdownMenuItem(
+                    text = { Text("Modificar nickname") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Nickname"
+                        )
+                    },
+                    onClick = {
+                        showSettingsMenu = false
+                        // El campo de nickname ya está visible arriba, hacer scroll hasta él
+                        // Por ahora solo cerrar el menú
+                    }
+                )
+
+                // Opción para exportar JSON
+                DropdownMenuItem(
+                    text = { Text("Exportar datos (JSON)") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = "Exportar"
+                        )
+                    },
+                    onClick = {
+                        showSettingsMenu = false
+                        exportJson(context, history)
+                    }
+                )
+
+                // Opción para importar JSON
+                DropdownMenuItem(
+                    text = { Text("Importar datos (JSON)") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Upload,
+                            contentDescription = "Importar"
+                        )
+                    },
+                    onClick = {
+                        showSettingsMenu = false
+                        jsonLauncher.launch(arrayOf("application/json"))
+                    }
+                )
+
+                // Opción de información
+                DropdownMenuItem(
+                    text = { Text("Información de la app") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = "Info"
+                        )
+                    },
+                    onClick = {
+                        showSettingsMenu = false
+                        Toast.makeText(context, "AhorrApp v1.1 - Comunidad de precios", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
 
             Spacer(Modifier.height(10.dp))
 
@@ -189,6 +392,69 @@ fun StatRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
         Text(value, fontWeight = FontWeight.Bold)
+    }
+}
+
+// Función para exportar datos en formato JSON
+private fun exportJson(context: Context, data: List<PriceEntryEntity>) {
+    try {
+        // Crear estructura de datos para JSON
+        val exportData = mapOf(
+            "exportDate" to System.currentTimeMillis(),
+            "appVersion" to "1.1",
+            "totalEntries" to data.size,
+            "entries" to data.map { entry ->
+                mapOf(
+                    "id" to entry.id,
+                    "barcode" to entry.barcode,
+                    "productName" to entry.productName,
+                    "supermarket" to entry.supermarket,
+                    "price" to entry.price,
+                    "timestamp" to entry.timestamp
+                )
+            }
+        )
+
+        // Convertir a JSON
+        val jsonString = Json.encodeToString(exportData)
+
+        // Guardar en archivo
+        val file = File(context.cacheDir, "historial_precios_ahorrapp.json")
+        file.writeText(jsonString)
+
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/json"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Historial de Precios - AhorrApp (JSON)")
+            putExtra(Intent.EXTRA_TEXT, "Archivo JSON con mi historial de precios escaneados.")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Compartir datos JSON con..."))
+
+        Toast.makeText(context, "Datos exportados correctamente", Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+        Toast.makeText(context, "Error al exportar datos: ${e.message}", Toast.LENGTH_LONG).show()
+    }
+}
+
+// Función para importar datos desde JSON
+private fun importJson(context: Context, uri: android.net.Uri, onResult: (Int) -> Unit) {
+    try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val reader = BufferedReader(InputStreamReader(inputStream))
+        val jsonString = reader.readText()
+        reader.close()
+        inputStream?.close()
+
+        // Por ahora, simular importación exitosa
+        // TODO: Implementar parsing completo de JSON
+        Toast.makeText(context, "Archivo JSON recibido. Importación próximamente.", Toast.LENGTH_LONG).show()
+        onResult(0) // Simular 0 entradas por ahora
+    } catch (e: Exception) {
+        Toast.makeText(context, "Error al leer archivo JSON: ${e.message}", Toast.LENGTH_LONG).show()
+        onResult(-1)
     }
 }
 

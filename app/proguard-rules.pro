@@ -22,9 +22,13 @@
 -keep class io.ktor.** { *; }
 -keep class io.github.jan.supabase.** { *; }
 -keep class org.jetbrains.kotlinx.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-keep class kotlinx.coroutines.flow.** { *; }
 -dontwarn io.ktor.**
 -dontwarn io.github.jan.supabase.**
 -dontwarn org.jetbrains.kotlinx.**
+-dontwarn kotlinx.coroutines.**
+-dontwarn kotlinx.coroutines.flow.**
 
 # --- SLF4J (Ktor logging dependency) ---
 -dontwarn org.slf4j.**
@@ -45,22 +49,32 @@
 -dontwarn retrofit2.KotlinExtensions$*
 
 # ===============================
-# 📱 ML KIT (BARCODE SCANNING) - CRÍTICO
+# 📱 ML KIT (BARCODE SCANNING) - CRÍTICO - REGLAS SIMPLIFICADAS
 # ===============================
+# Mantener TODAS las clases de ML Kit (regla más conservadora)
 -keep class com.google.mlkit.** { *; }
 -keep class com.google.android.gms.** { *; }
 -keep class com.google.firebase.** { *; }
+
+# Reglas específicas mínimas para funcionamiento
+-keep class com.google.mlkit.vision.barcode.** { *; }
+-keep class com.google.mlkit.vision.barcode.BarcodeScannerOptions { *; }
+-keep class com.google.mlkit.vision.barcode.BarcodeScanning { *; }
+-keep class com.google.mlkit.vision.common.InputImage { *; }
+
 -dontwarn com.google.mlkit.**
 -dontwarn com.google.android.gms.**
 -dontwarn com.google.firebase.**
 
 # ===============================
-# 📷 CAMERAX - CRÍTICO
+# 📷 CAMERAX - CRÍTICO - REGLAS SIMPLIFICADAS
 # ===============================
 -keep class androidx.camera.** { *; }
 -keep class androidx.camera.core.** { *; }
 -keep class androidx.camera.lifecycle.** { *; }
+-keep class androidx.camera.view.** { *; }
 -keep class androidx.lifecycle.** { *; }
+
 -dontwarn androidx.camera.**
 -dontwarn androidx.lifecycle.**
 
@@ -96,7 +110,7 @@
 -dontwarn org.jetbrains.skiko.**
 
 # ===============================
-# 🎨 JETPACK COMPOSE
+# 🎨 JETPACK COMPOSE - REGLAS EXPANDIDAS
 # ===============================
 -keep class androidx.compose.** { *; }
 -keep class androidx.compose.runtime.** { *; }
@@ -104,11 +118,23 @@
 -keep class androidx.compose.material3.** { *; }
 -keep class androidx.compose.foundation.** { *; }
 -keep class androidx.compose.animation.** { *; }
+-keep class androidx.compose.animation.core.** { *; }
+
+# Mantener clases específicas de animación que usamos
+-keep class androidx.compose.animation.core.Animatable { *; }
+-keep class androidx.compose.animation.core.AnimationVector1D { *; }
+-keep class androidx.compose.ui.graphics.graphicsLayer { *; }
+
+# Mantener Icon y sus recursos
+-keep class androidx.compose.material.icons.Icons { *; }
+-keep class androidx.compose.material.icons.filled.CheckCircle { *; }
+
 -dontwarn androidx.compose.**
 -dontwarn androidx.compose.runtime.**
 -dontwarn androidx.compose.ui.**
 -dontwarn androidx.compose.material3.**
 -dontwarn androidx.compose.foundation.**
+-dontwarn androidx.compose.animation.**
 
 # ===============================
 # 🌐 RETROFIT & OKHTTP
@@ -135,7 +161,7 @@
 -dontwarn androidx.appcompat.**
 
 # ===============================
-# 📱 TU APP ESPECÍFICA
+# 📱 TU APP ESPECÍFICA - REGLAS EXPANDIDAS
 # ===============================
 -keep class com.d4vram.ahorrapp.** { *; }
 -keep class com.d4vram.ahorrapp.data.** { *; }
@@ -143,6 +169,16 @@
 -keep class com.d4vram.ahorrapp.ui.screens.** { *; }
 -keep class com.d4vram.ahorrapp.workers.** { *; }
 -keep class com.d4vram.ahorrapp.navigation.** { *; }
+
+# Mantener funciones específicas que usamos
+-keepclassmembers class com.d4vram.ahorrapp.ui.screens.ScannerScreenKt {
+    *** ScannerScreen(...);
+}
+
+# Mantener funciones de extensión
+-keepclassmembers class com.d4vram.ahorrapp.data.RepositoryKt {
+    *** getDeviceId(...);
+}
 
 # Mantener BuildConfig
 -keep class com.d4vram.ahorrapp.BuildConfig { *; }

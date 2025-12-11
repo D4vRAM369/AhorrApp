@@ -26,21 +26,42 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalConfiguration
 import com.d4vram.ahorrapp.R
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clip
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import kotlin.math.min
+import android.content.Context
+import android.widget.Toast
+
+
 
 // Función helper para padding responsive
 @Composable
@@ -74,7 +95,7 @@ fun responsiveIconSize(): Dp {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
-    val pagerState = rememberPagerState(pageCount = { 5 })
+    val pagerState = rememberPagerState(pageCount = { 6 })
     val scope = rememberCoroutineScope()
 
     Column(
@@ -105,6 +126,7 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
                 2 -> OnboardingPage3()
                 3 -> OnboardingPage4()
                 4 -> OnboardingPage5()
+                5 -> OnboardingPage6(onFinish = onFinish)
             }
         }
 
@@ -120,7 +142,7 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                repeat(5) { index ->
+                repeat(6) { index ->
                     val isSelected = pagerState.currentPage == index
                     Box(
                         modifier = Modifier
@@ -133,7 +155,7 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
                                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                             )
                     )
-                    if (index < 4) Spacer(modifier = Modifier.width(8.dp))
+                    if (index < 5) Spacer(modifier = Modifier.width(8.dp))
                 }
             }
 
@@ -161,18 +183,19 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if (pagerState.currentPage < 4) {
+                        if (pagerState.currentPage < 5) {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             }
                         } else {
+                            // Página 5: completar onboarding
                             onFinish()
                         }
                     },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text(if (pagerState.currentPage < 4) "Siguiente" else "¡Empezar!")
+                    Text(if (pagerState.currentPage < 5) "Siguiente" else "¡Comenzar!")
                 }
             }
         }
@@ -181,6 +204,20 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
 
 @Composable
 fun OnboardingPage1() {
+    val scrollState = rememberScrollState()
+
+    // Autoscroll suave cuando la página se carga
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(500) // Pequeño delay para que se renderice
+        scrollState.animateScrollTo(
+            value = (scrollState.maxValue * 0.3f).toInt(), // Scroll al 30% del contenido
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 800,
+                easing = androidx.compose.animation.core.EaseOutCubic
+            )
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -191,7 +228,7 @@ fun OnboardingPage1() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -254,6 +291,20 @@ fun OnboardingPage1() {
 
 @Composable
 fun OnboardingPage2() {
+    val scrollState = rememberScrollState()
+
+    // Autoscroll suave cuando la página se carga
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(500)
+        scrollState.animateScrollTo(
+            value = (scrollState.maxValue * 0.2f).toInt(), // Scroll al 20% del contenido
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 600,
+                easing = androidx.compose.animation.core.EaseOutCubic
+            )
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -263,7 +314,7 @@ fun OnboardingPage2() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -323,6 +374,20 @@ fun OnboardingPage2() {
 
 @Composable
 fun OnboardingPage3() {
+    val scrollState = rememberScrollState()
+
+    // Autoscroll suave cuando la página se carga
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(500)
+        scrollState.animateScrollTo(
+            value = (scrollState.maxValue * 0.25f).toInt(), // Scroll al 25% del contenido
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 700,
+                easing = androidx.compose.animation.core.EaseOutCubic
+            )
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -332,7 +397,7 @@ fun OnboardingPage3() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -392,6 +457,37 @@ fun OnboardingPage3() {
 
 @Composable
 fun OnboardingPage4() {
+    val scrollState = rememberScrollState()
+
+    // Autoscroll inteligente: verificar si hay contenido scrolleable después de composición
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1000) // Esperar a que se renderice
+        if (scrollState.maxValue > 0) { // Si hay contenido para scrollear
+            // Scroll inicial
+            scrollState.animateScrollTo(
+                value = (scrollState.maxValue * 0.2f).toInt(),
+                animationSpec = tween(
+                    durationMillis = 600,
+                    easing = FastOutSlowInEasing
+                )
+            )
+
+            // Scroll progresivo cada 5 segundos
+            var currentPosition = 0.2f
+            while (currentPosition < 1f) {
+                kotlinx.coroutines.delay(5000) // 5 segundos
+                currentPosition = min(currentPosition + 0.15f, 1f)
+                scrollState.animateScrollTo(
+                    value = (scrollState.maxValue * currentPosition).toInt(),
+                    animationSpec = tween(
+                        durationMillis = 800,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -401,7 +497,7 @@ fun OnboardingPage4() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -474,6 +570,20 @@ fun OnboardingPage4() {
 
 @Composable
 fun OnboardingPage5() {
+    val scrollState = rememberScrollState()
+
+    // Autoscroll suave cuando la página se carga
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(500)
+        scrollState.animateScrollTo(
+            value = (scrollState.maxValue * 0.1f).toInt(), // Scroll mínimo al 10% del contenido
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 400,
+                easing = androidx.compose.animation.core.EaseOutCubic
+            )
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -485,7 +595,7 @@ fun OnboardingPage5() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             Box(
                 modifier = Modifier
@@ -536,6 +646,150 @@ fun OnboardingPage5() {
                 Text("• Encuentra el mejor precio disponible", style = MaterialTheme.typography.bodyMedium)
                 Text("• Ahorra tiempo en tus compras semanales", style = MaterialTheme.typography.bodyMedium)
                 Text("• Toma decisiones informadas", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+@Composable
+fun OnboardingPage6(onFinish: () -> Unit) {
+    val context = LocalContext.current
+    var nickname by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(responsivePadding())
+    ) {
+        // Contenido principal
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Ícono
+            Box(
+                modifier = Modifier
+                    .size(responsiveIconSize())
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("👤", style = MaterialTheme.typography.displayLarge)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Título
+            Text(
+                "¡Personaliza tu experiencia!",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Campo Nickname (Obligatorio)
+            OutlinedTextField(
+                value = nickname,
+                onValueChange = { nickname = it },
+                label = { Text("Tu nickname *") },
+                placeholder = { Text("Ej: CompradorPro") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    androidx.compose.material3.Text("Será visible en tus aportaciones a la comunidad")
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo Ubicación (Opcional)
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Zona de compra (opcional)") },
+                placeholder = { Text("Ej: Las Palmas, Tenerife...") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    androidx.compose.material3.Text("Nos ayuda a conocer mejor los supermercados de tu zona")
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Texto explicativo
+            Text(
+                "🌍 Tu nickname y zona nos ayudan a crear una base de datos más rica y precisa. ¡Cada aportación cuenta para mejorar la experiencia de todos!",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Botón para guardar y continuar
+            Button(
+                onClick = {
+                    if (nickname.isNotBlank()) {
+                        // Guardar nickname y ubicación
+                        val userPrefs = context.getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+                        userPrefs.edit()
+                            .putString("user_nickname", nickname)
+                            .putString("user_location", location.takeIf { it.isNotBlank() })
+                            .apply()
+
+                        // Completar onboarding
+                        userPrefs.edit().putBoolean("onboarding_completed", true).apply()
+
+                        // Navegar a la siguiente pantalla
+                        onFinish()
+
+                        // Navegar a welcome
+                        // Nota: La navegación se maneja desde el NavGraph
+                    } else {
+                        Toast.makeText(context, "Por favor ingresa un nickname", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(0.8f),
+                shape = RoundedCornerShape(24.dp),
+                enabled = nickname.isNotBlank()
+            ) {
+                Text("Siguiente")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Tarjeta informativa
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            ),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "💡 ¿Por qué es útil?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Conocer tu zona nos permite identificar tendencias locales y mejorar las recomendaciones de precios.",
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

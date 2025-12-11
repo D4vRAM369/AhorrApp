@@ -2,7 +2,6 @@ package com.d4vram.ahorrapp.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,30 +13,42 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.d4vram.ahorrapp.R
-
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import com.d4vram.ahorrapp.R
 
 @Composable
 fun HomeScreen(
@@ -45,6 +56,7 @@ fun HomeScreen(
     onHistory: () -> Unit,
     onComparison: () -> Unit,
     onFavorites: () -> Unit,
+    onSettings: () -> Unit,
     isDarkMode: Boolean,
     onToggleTheme: () -> Unit
 ) {
@@ -69,18 +81,34 @@ fun HomeScreen(
                 Text("AhorrApp", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text("Escanea, comparte y ahorra en Canarias", style = MaterialTheme.typography.bodyMedium)
             }
-            // Switch keeps its size
-            Switch(
-                checked = isDarkMode,
-                onCheckedChange = { onToggleTheme() },
-                thumbContent = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Switch keeps its size
+                Switch(
+                    checked = isDarkMode,
+                    onCheckedChange = { onToggleTheme() },
+                    thumbContent = {
+                        Icon(
+                            imageVector = if (isDarkMode) Icons.Filled.Nightlight else Icons.Filled.WbSunny,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                )
+
+                androidx.compose.material3.IconButton(
+                    onClick = onSettings,
+                    modifier = Modifier.size(24.dp)
+                ) {
                     Icon(
-                        imageVector = if (isDarkMode) Icons.Filled.Nightlight else Icons.Filled.WbSunny,
-                        contentDescription = null,
-                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Ajustes",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            )
+            }
         }
 
         Card(
@@ -186,37 +214,78 @@ fun HomeScreen(
 
             val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 
-            // This is the problematic line, you should delete it.
-            // androidx.compose.foundation.clickable { uriHandler.openUri("https://www.buymeacoffee.com/D4vRAM369") }
 
-            // This Row already correctly handles the clicks with Buttons.
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Button(
                     onClick = { uriHandler.openUri("https://www.buymeacoffee.com/D4vRAM369") },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFDD00))
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFDD00)),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)
                 ) {
-                    Text("☕ Buy me a Coffee", color = androidx.compose.ui.graphics.Color.Black)
+                    Text(
+                        "☕ Buy me a Coffee",
+                        color = androidx.compose.ui.graphics.Color.Black,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                    )
                 }
 
                 Button(
                     onClick = { uriHandler.openUri("https://github.com/D4vRAM369/") },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Black)
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Black),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = R.mipmap.ic_github), 
-                        contentDescription = null, 
+                        painter = painterResource(id = R.mipmap.ic_github),
+                        contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text("GitHub Profile", color = androidx.compose.ui.graphics.Color.White)
+                    Text(
+                        "GitHub Profile",
+                        color = androidx.compose.ui.graphics.Color.White,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                    )
                 }
             }
 
-            androidx.compose.material3.AssistChip(
-                onClick = { /* Repo not created yet */ },
-                label = { Text("Repositorio del proyecto (Pronto)") },
-                leadingIcon = { Icon(Icons.Default.Code, null) }
-            )
+            // Nuevo botón para el repositorio de AhorrApp
+            Spacer(modifier = Modifier.height(12.dp))
+            androidx.compose.material3.OutlinedButton(
+                onClick = { uriHandler.openUri("https://github.com/D4vRAM369/AhorrApp/") },
+                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF238636), // Verde GitHub
+                    contentColor = androidx.compose.ui.graphics.Color.White
+                ),
+                modifier = Modifier.fillMaxWidth(0.7f),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.mipmap.ic_github),
+                        contentDescription = "GitHub",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Ver Repositorio",
+                        style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
+                }
+            }
+
         }
     }
 }
