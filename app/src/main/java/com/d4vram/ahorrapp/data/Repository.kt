@@ -18,6 +18,17 @@ import kotlinx.serialization.Serializable
 // Removed unused kotlinx.datetime imports
 import io.github.jan.supabase.postgrest.query.Order
 
+// Data class para PushMessage
+data class PushMessage(
+    val id: String,
+    val title: String,
+    val message: String,
+    val messageType: String = "info",
+    val linkUrl: String? = null,
+    val linkText: String? = null,
+    val priority: Int = 0
+)
+
 // Función de extensión para obtener Device ID
 fun Context.getDeviceId(): String {
     return Settings.Secure.getString(
@@ -99,6 +110,28 @@ class Repository(context: Context) {
     private val priceDao = db.priceDao()
     private val productDao = db.productDao()
 
+    // Función para enviar eventos de analytics
+    suspend fun sendAnalyticsEvent(
+        deviceId: String,
+        eventType: String,
+        eventData: Map<String, Any> = emptyMap(),
+        sessionId: String? = null
+    ) {
+        try {
+            supabase.from("analytics_events").insert(
+                mapOf(
+                    "device_id" to deviceId,
+                    "event_type" to eventType,
+                    "event_data" to eventData,
+                    "session_id" to sessionId
+                )
+            )
+        } catch (e: Exception) {
+            // Silenciar errores de analytics para no afectar UX principal
+            android.util.Log.d("Repository", "Analytics event failed: ${e.message}")
+        }
+    }
+
     suspend fun postPrice(
         barcode: String,
         supermarket: String,
@@ -121,6 +154,18 @@ class Repository(context: Context) {
                     moreInfo = moreInfo,
                     deviceId = deviceId,
                     nickname = nickname
+                )
+            )
+
+            // Enviar evento de analytics si la subida fue exitosa
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = "price_reported",
+                eventData = mapOf(
+                    "barcode" to barcode,
+                    "supermarket" to supermarket,
+                    "price" to price,
+                    "has_product_name" to (productName != null)
                 )
             )
         }.onFailure {
@@ -310,6 +355,17 @@ class Repository(context: Context) {
                     productName = productName
                 )
             )
+
+            // Enviar evento de analytics
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = "favorite_added",
+                eventData = mapOf(
+                    "barcode" to barcode as Any,
+                    "product_name" to (productName ?: "") as Any
+                )
+            )
+
             true
         }.getOrDefault(false)
     }
@@ -322,6 +378,14 @@ class Repository(context: Context) {
                     eq("barcode", barcode)
                 }
             }
+
+            // Enviar evento de analytics
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = "favorite_removed",
+                eventData = mapOf("barcode" to barcode)
+            )
+
             true
         }.getOrDefault(false)
     }
@@ -361,6 +425,8 @@ class Repository(context: Context) {
                 }
             }.decodeSingleOrNull<PriceAlert>()
 
+            val isUpdate = existing != null
+
             if (existing != null) {
                 // Update existing
                 supabase.from("price_alerts").update(
@@ -386,6 +452,19 @@ class Repository(context: Context) {
                     )
                 )
             }
+
+            // Enviar evento de analytics
+            sendAnalyticsEvent(
+                deviceId = deviceId,
+                eventType = if (isUpdate) "alert_updated" else "alert_created",
+                eventData = mapOf(
+                    "barcode" to barcode as Any,
+                    "target_price" to (targetPrice ?: 0.0) as Any,
+                    "alert_percentage" to alertPercentage as Any,
+                    "is_update" to isUpdate as Any
+                )
+            )
+
             true
         }.getOrDefault(false)
     }
@@ -531,4 +610,101 @@ class Repository(context: Context) {
     fun searchLocalProducts(query: String): Flow<List<ProductEntity>> = productDao.searchProducts(query)
 
     suspend fun getLocalProductCount(): Int = productDao.getProductCount()
+
+    // Funciones helper para métricas de usuario
+    suspend fun getUserTotalScans(deviceId: String): Int {
+        return runCatching {
+            supabase.from("analytics_events")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .count { (it["event_type"] as? String) == "price_reported" }
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserUniqueProducts(deviceId: String): Int {
+        return runCatching {
+            supabase.from("prices")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .distinctBy { it["barcode"] as? String }
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserTotalContributions(deviceId: String): Int {
+        return runCatching {
+            supabase.from("prices")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserTotalFavorites(deviceId: String): Int {
+        return runCatching {
+            supabase.from("user_favorites")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun getUserTotalAlerts(deviceId: String): Int {
+        return runCatching {
+            supabase.from("price_alerts")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeList<Map<String, Any>>()
+                .size
+        }.getOrDefault(0)
+    }
+
+    suspend fun updateUserAnalytics(
+        deviceId: String,
+        totalScans: Int,
+        uniqueProducts: Int,
+        totalContributions: Int,
+        totalFavorites: Int,
+        totalAlerts: Int
+    ) {
+        try {
+            // Intentar actualizar primero
+            val existing = supabase.from("user_analytics")
+                .select { filter { eq("device_id", deviceId) } }
+                .decodeSingleOrNull<Map<String, Any>>()
+
+            val analyticsData = mapOf(
+                "device_id" to deviceId,
+                "total_scans" to totalScans,
+                "unique_products_scanned" to uniqueProducts,
+                "total_prices_reported" to totalContributions,
+                "total_favorites_added" to totalFavorites,
+                "total_alerts_created" to totalAlerts,
+                "updated_at" to "now()"
+            )
+
+            if (existing != null) {
+                // Update existing
+                supabase.from("user_analytics").update(analyticsData) {
+                    filter { eq("device_id", deviceId) }
+                }
+            } else {
+                // Insert new
+                supabase.from("user_analytics").insert(analyticsData)
+            }
+        } catch (e: Exception) {
+            // Silenciar errores de analytics
+            android.util.Log.d("Repository", "Failed to update user analytics: ${e.message}")
+        }
+    }
+
+    // Funciones para sistema de mensajes push
+    suspend fun getUnseenPushMessages(deviceId: String): List<PushMessage> {
+        // Por ahora devolver lista vacía - los mensajes se manejarán desde Supabase directamente
+        return emptyList()
+    }
+
+    suspend fun markMessageViewed(messageId: String, deviceId: String, action: String = "viewed") {
+        // Simplemente loggear por ahora
+        android.util.Log.d("Repository", "Message $messageId marked as $action by $deviceId")
+    }
 }

@@ -170,6 +170,9 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
                         if (!code.isNullOrEmpty() && !alreadyHandled) {
                             alreadyHandled = true
                             showSuccessAnimation = true
+
+                            // Enviar evento de analytics para escaneo
+                            // Nota: El ViewModel manejará el envío del evento completo cuando se guarde el precio
                             onBarcodeScanned(code)
                         }
                     }

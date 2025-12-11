@@ -1,0 +1,158 @@
+package com.d4vram.ahorrapp.navigation
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.d4vram.ahorrapp.ui.screens.HistoryScreen
+import com.d4vram.ahorrapp.ui.screens.HomeScreen
+import com.d4vram.ahorrapp.ui.screens.OnboardingScreen
+import com.d4vram.ahorrapp.ui.screens.PriceEntryScreen
+import com.d4vram.ahorrapp.ui.screens.ScannerScreen
+import com.d4vram.ahorrapp.ui.screens.WelcomeScreen
+import com.d4vram.ahorrapp.ui.screens.PushMessageScreen
+import com.d4vram.ahorrapp.data.PushMessage
+import com.d4vram.ahorrapp.ui.screens.FavoritesScreen
+import com.d4vram.ahorrapp.ui.screens.LockScreen
+import androidx.compose.runtime.LaunchedEffect
+
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.d4vram.ahorrapp.viewmodel.TpvViewModel
+
+@Composable
+fun NavGraph(nav: NavHostController, padding: PaddingValues, viewModel: TpvViewModel) {
+
+    // --- SOLUTION ---
+    // Move the LaunchedEffect here, into the Composable scope of NavGraph
+    val isLocked by viewModel.isAppLocked.collectAsState()
+    val showOnboarding by viewModel.showOnboarding.collectAsState()
+
+    LaunchedEffect(isLocked) {
+        if (isLocked) {
+            nav.navigate("lock") {
+                popUpTo(0) // Clear backstack so user can't go back
+            }
+        }
+    }
+
+    NavHost(
+        navController = nav,
+        startDestination = if (showOnboarding) "onboarding" else "welcome"
+    ) {
+
+        composable("onboarding") {
+            OnboardingScreen(
+                onFinish = {
+                    // El onboarding se completa desde la página 6
+                    nav.navigate("welcome") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                },
+                onSkip = {
+                    viewModel.completeOnboarding()
+                    nav.navigate("welcome") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("welcome") {
+            WelcomeScreen(onContinue = { nav.navigate("home") })
+        }
+
+            WelcomeScreen(onContinue = {
+                // Verificar si hay mensajes push antes de ir a home
+                val currentMessage = viewModel.currentPushMessage.value
+                if (currentMessage != null) {
+                    nav.navigate("push_message")
+                } else {
+                    nav.navigate("home")
+                }
+            })
+        }
+
+        composable("push_message") {
+            PushMessageScreen(
+                message = PushMessage(
+                    id = "temp",
+                    title = "Mensaje de Prueba",
+                    message = "Este es un mensaje de prueba del sistema de notificaciones push.",
+                    messageType = "info"
+                ),
+                onDismiss = {
+                    nav.navigate("home") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                },
+                viewModel = viewModel
+            )
+        }
+
+        composable("lock") {
+            LockScreen(deviceId = viewModel.getDeviceIdStr())
+        }
+
+        // The LaunchedEffect that was causing the error has been moved out.
+
+        composable("home") {
+            val isDarkMode by viewModel.isDarkMode.collectAsState()
+            val currentPushMessage by viewModel.currentPushMessage.collectAsState()
+
+            if (currentPushMessage != null) {
+                PushMessageScreen(
+                    message = currentPushMessage!!,
+                    onDismiss = { viewModel.dismissPushMessage() },
+                    viewModel = viewModel
+                )
+            } else {
+                LaunchedEffect(Unit) {
+                    viewModel.loadPushMessagesForWelcome()
+                }
+                HomeScreen(
+                    onScan = { nav.navigate("scanner") },
+                    onHistory = { nav.navigate("history") },
+                    onComparison = { nav.navigate("comparison") },
+                    onFavorites = { nav.navigate("favorites") },
+                    isDarkMode = isDarkMode,
+                    onToggleTheme = { viewModel.toggleDarkMode() }
+                )
+            }
+        }
+
+        composable("scanner") {
+            ScannerScreen { barcode ->
+                nav.navigate("entry/$barcode")
+            }
+        }
+
+        composable("entry/{barcode}") { backStack ->
+            val code = backStack.arguments?.getString("barcode") ?: ""
+            PriceEntryScreen(barcode = code, onDone = { nav.popBackStack() })
+        }
+
+        composable("history") {
+            HistoryScreen(onSettingsClick = { nav.navigate("profile") })
+        }
+
+        composable("comparison") {
+            com.d4vram.ahorrapp.ui.screens.ComparisonScreen(
+                viewModel = viewModel,
+                onBack = { nav.popBackStack() }
+            )
+        }
+
+        composable("profile") {
+            com.d4vram.ahorrapp.ui.screens.ProfileScreen(onBack = { nav.popBackStack() })
+        }
+
+        composable("favorites") {
+            FavoritesScreen(
+                viewModel = viewModel,
+                onBack = { nav.popBackStack() }
+            )
+        }
+    }
+}
