@@ -37,12 +37,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Credenciales seguras** via local.properties
 - **Licencia por dispositivo** para control de calidad
 
+## [1.1.0] - 11-12-2025
+
+### Added
+- **Device ID tracking** - Mejor identificación de usuarios por dispositivo
+- **Analytics foundation** - Base de datos preparada para métricas de usuarios
+- **Enhanced data collection** - Campos device_id y nickname en precios
+
+### Changed
+- **Database schema** - Nuevos campos en tabla prices para mejor tracking
+- **Repository layer** - Actualizado para incluir device_id en inserciones
+- **Backward compatibility** - Mantenida compatibilidad total con v1.0
+
+### Technical
+- **Supabase integration** - Nuevas tablas: users, user_analytics, analytics_events
+- **Device identification** - Función Context.getDeviceId() implementada
+- **Data models** - SupabasePriceEntry actualizado con device_id
+
+### Security
+- **Privacy enhanced** - Mejor control de datos por dispositivo
+- **No breaking changes** - Compatibilidad total con versiones anteriores
+
 ## [Unreleased]
 
 ### Planned
 - Screenshots en README
 - Badges de build status
 - Soporte multiidioma
+- Dashboard de analytics
+- Sistema de autenticación de usuarios
 
 ---
 
