@@ -186,21 +186,31 @@ fun HomeScreen(
 
             val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 
-            // This is the problematic line, you should delete it.
-            // androidx.compose.foundation.clickable { uriHandler.openUri("https://www.buymeacoffee.com/D4vRAM369") }
 
-            // This Row already correctly handles the clicks with Buttons.
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Button(
                     onClick = { uriHandler.openUri("https://www.buymeacoffee.com/D4vRAM369") },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFDD00))
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFDD00)),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)
                 ) {
-                    Text("☕ Buy me a Coffee", color = androidx.compose.ui.graphics.Color.Black)
+                    Text(
+                        "☕ Buy me a Coffee",
+                        color = androidx.compose.ui.graphics.Color.Black,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                    )
                 }
 
                 Button(
                     onClick = { uriHandler.openUri("https://github.com/D4vRAM369/") },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Black)
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Black),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)
                 ) {
                     Image(
                         painter = painterResource(id = R.mipmap.ic_github),
@@ -208,30 +218,44 @@ fun HomeScreen(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text("GitHub Profile", color = androidx.compose.ui.graphics.Color.White)
+                    Text(
+                        "GitHub Profile",
+                        color = androidx.compose.ui.graphics.Color.White,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                    )
                 }
             }
 
             // Nuevo botón para el repositorio de AhorrApp
             Spacer(modifier = Modifier.height(12.dp))
-            Button(
+            androidx.compose.material3.OutlinedButton(
                 onClick = { uriHandler.openUri("https://github.com/D4vRAM369/AhorrApp/") },
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFF238636) // Verde GitHub
+                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF238636), // Verde GitHub
+                    contentColor = androidx.compose.ui.graphics.Color.White
                 ),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                modifier = Modifier.fillMaxWidth(0.7f),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.mipmap.ic_github),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.size(12.dp))
-                Text(
-                    "📱 Ver Repositorio de AhorrApp",
-                    color = androidx.compose.ui.graphics.Color.White,
-                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.mipmap.ic_github),
+                        contentDescription = "GitHub",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Ver Repositorio",
+                        style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
+                }
             }
 
         }
