@@ -83,11 +83,23 @@ fun PriceEntryScreen(
             }
 
             productState.product != null -> {
-                val product = productState.product
-                Text(
-                    text = product.name + (product.brand?.let { " · $it" } ?: ""),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                val product = productState.product!!
+                Column {
+                    Text(
+                        text = product.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        product.brand?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                        }
+                        if (!product.moreInfo.isNullOrBlank()) {
+                            if (product.brand != null) Text(" • ", style = MaterialTheme.typography.bodySmall)
+                            Text(product.moreInfo, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
 
             productState.error != null -> {
@@ -194,7 +206,7 @@ fun PriceEntryScreen(
         if (viewModel.isLoadingExistingPrice) {
             Text("Buscando precios en la comunidad...", style = MaterialTheme.typography.bodySmall)
         } else {
-            val history = viewModel.historicalPricesForBarcode
+            val history = viewModel.historicalPricesForBarcode.sortedByDescending { it.createdAt }
             val userPrice = price.toDoubleOrNull() ?: 0.0
             val currentMarket = if (selectedSupermarket == "Otro") customSupermarket else selectedSupermarket
 
@@ -202,7 +214,7 @@ fun PriceEntryScreen(
                 val minPrice = history.minOf { it.price }
                 val maxPrice = history.maxOf { it.price }
                 val avgPrice = history.map { it.price }.average()
-                
+
                 // Si el usuario está escribiendo un precio, comparamos ESE precio
                 val priceToCompare = if (userPrice > 0) userPrice else (viewModel.existingPrice?.price ?: minPrice)
                 val diffPercent = ((priceToCompare - avgPrice) / avgPrice * 100)
@@ -218,7 +230,7 @@ fun PriceEntryScreen(
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold
                             )
-                            
+
                             // Badge de variación (solo si hay precio para comparar)
                             if (priceToCompare > 0) {
                                 Surface(
@@ -235,36 +247,61 @@ fun PriceEntryScreen(
                                 }
                             }
                         }
-                        
+
                         Text(
                             if (userPrice > 0) "${priceToCompare}€" else "Comparando...",
                             style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Black
                         )
-                        
+
                         Spacer(Modifier.height(8.dp))
                         ThermalBar(current = priceToCompare, min = minPrice, max = maxPrice)
-                        
+
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             val minEntry = history.minBy { it.price }
                             val maxEntry = history.maxBy { it.price }
-                            Text("Más barato: ${minEntry.price}€ (${minEntry.supermarket})", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2196F3))
-                            Text("Más caro: ${maxEntry.price}€", style = MaterialTheme.typography.labelSmall, color = Color(0xFFF44336))
+                            Text("mín: ${minEntry.price}€ (${minEntry.supermarket})", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2196F3))
+                            Text("máx: ${maxEntry.price}€", style = MaterialTheme.typography.labelSmall, color = Color(0xFFF44336))
                         }
+                    }
+                }
 
-                        // Mostrar hasta 2 entradas de otros supermercados
-                        Spacer(Modifier.height(12.dp))
-                        history.filter { it.supermarket != currentMarket }.take(2).forEach { entry ->
-                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                 Text("${entry.supermarket}:", style = MaterialTheme.typography.bodySmall)
-                                 Text("${entry.price}€", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                             }
+                // LISTADO DETALLADO (Llenando el "espacio en blanco")
+                Spacer(Modifier.height(16.dp))
+                Text("Registros en otros establecimientos:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(8.dp))
+
+                history.take(5).forEach { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(Modifier.padding(12.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(entry.supermarket, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+                                Text("${entry.price}€", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+                            }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                entry.createdAt?.let { date ->
+                                    val dateStr = try {
+                                        val parts = date.split("T")
+                                        val day = parts[0].split("-").reversed().joinToString("/")
+                                        val time = parts[1].substring(0, 5)
+                                        "$day $time"
+                                    } catch (e: Exception) { date }
+                                    Text(dateStr, style = MaterialTheme.typography.labelSmall)
+                                }
+                                entry.nickname?.let {
+                                    Text("por $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
                         }
                     }
                 }
             } else if (currentMarket.isNotBlank() && !viewModel.isLoadingExistingPrice) {
-                Text("Sé el primero en registrar este producto en la comunidad 🚀", 
-                    style = MaterialTheme.typography.bodySmall, 
+                Text("Sé el primero en registrar este producto en la comunidad 🚀",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(vertical = 8.dp))
             }
