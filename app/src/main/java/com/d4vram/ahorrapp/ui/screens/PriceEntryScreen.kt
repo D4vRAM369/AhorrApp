@@ -1,41 +1,28 @@
 package com.d4vram.ahorrapp.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.d4vram.ahorrapp.R
 import com.d4vram.ahorrapp.data.ProductInfo
 import com.d4vram.ahorrapp.viewmodel.TpvViewModel
 import com.d4vram.ahorrapp.viewmodel.rememberTpvViewModel
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import com.d4vram.ahorrapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -203,54 +190,83 @@ fun PriceEntryScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        // Show existing price info
+        // Comparación con Comunidad (Supabase)
         if (viewModel.isLoadingExistingPrice) {
-            Text("Buscando precios recientes...", style = MaterialTheme.typography.bodySmall)
+            Text("Buscando precios en la comunidad...", style = MaterialTheme.typography.bodySmall)
         } else {
-            if (viewModel.existingPrice != null) {
-                val existing = viewModel.existingPrice!!
+            val history = viewModel.historicalPricesForBarcode
+            val userPrice = price.toDoubleOrNull() ?: 0.0
+            val currentMarket = if (selectedSupermarket == "Otro") customSupermarket else selectedSupermarket
+
+            if (history.isNotEmpty()) {
+                val minPrice = history.minOf { it.price }
+                val maxPrice = history.maxOf { it.price }
+                val avgPrice = history.map { it.price }.average()
+                
+                // Si el usuario está escribiendo un precio, comparamos ESE precio
+                val priceToCompare = if (userPrice > 0) userPrice else (viewModel.existingPrice?.price ?: minPrice)
+                val diffPercent = ((priceToCompare - avgPrice) / avgPrice * 100)
+
                 Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(
-                            "Precio existente encontrado:",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text("Último precio: ${existing.price}€")
-                        existing.createdAt?.let { date ->
-                            // Simple formatting
-                            val dateStr = try {
-                                date.split("T")[0].split("-").reversed().joinToString("/")
-                            } catch (e: Exception) { date }
-                            Text("Fecha: $dateStr")
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                if (userPrice > 0) "Tu precio vs Comunidad" else "Historial Comunitario",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            
+                            // Badge de variación (solo si hay precio para comparar)
+                            if (priceToCompare > 0) {
+                                Surface(
+                                    color = if (diffPercent <= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(
+                                        text = "${if (diffPercent > 0) "+" else ""}${String.format("%.1f", diffPercent)}%",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
-                        if (existing.nickname != null) {
-                            Text("Por: ${existing.nickname}", style = MaterialTheme.typography.bodySmall)
+                        
+                        Text(
+                            if (userPrice > 0) "${priceToCompare}€" else "Comparando...",
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Black
+                        )
+                        
+                        Spacer(Modifier.height(8.dp))
+                        ThermalBar(current = priceToCompare, min = minPrice, max = maxPrice)
+                        
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            val minEntry = history.minBy { it.price }
+                            val maxEntry = history.maxBy { it.price }
+                            Text("Más barato: ${minEntry.price}€ (${minEntry.supermarket})", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2196F3))
+                            Text("Más caro: ${maxEntry.price}€", style = MaterialTheme.typography.labelSmall, color = Color(0xFFF44336))
+                        }
+
+                        // Mostrar hasta 2 entradas de otros supermercados
+                        Spacer(Modifier.height(12.dp))
+                        history.filter { it.supermarket != currentMarket }.take(2).forEach { entry ->
+                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                 Text("${entry.supermarket}:", style = MaterialTheme.typography.bodySmall)
+                                 Text("${entry.price}€", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                             }
                         }
                     }
                 }
-                Spacer(Modifier.height(12.dp))
-            } else if (viewModel.fetchError != null) {
-                Text(
-                    "Error al buscar precio: ${viewModel.fetchError}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            } else {
-                 val currentMarket = if (selectedSupermarket == "Otro") customSupermarket else selectedSupermarket
-                 if (currentMarket.isNotBlank()) {
-                     Text(
-                         "No se encontró precio previo en $currentMarket",
-                         style = MaterialTheme.typography.bodySmall,
-                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                     )
-                 }
+            } else if (currentMarket.isNotBlank() && !viewModel.isLoadingExistingPrice) {
+                Text("Sé el primero en registrar este producto en la comunidad 🚀", 
+                    style = MaterialTheme.typography.bodySmall, 
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp))
             }
         }
 
@@ -380,5 +396,49 @@ fun PriceEntryScreen(
             },
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
+    }
+}
+
+@Composable
+fun ThermalBar(current: Double, min: Double, max: Double) {
+    val progress = if (max > min) ((current - min) / (max - min)).toFloat() else 0.5f
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(
+                        Color(0xFF2196F3), // Azul (Barato)
+                        Color(0xFFFFC107), // Amarillo (Medio)
+                        Color(0xFFF44336)  // Rojo (Caro)
+                    )
+                )
+            )
+    ) {
+        // Indicador de posición actual
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(progress.coerceIn(0.01f, 1f))
+                .background(Color.Transparent)
+        )
+        
+        // Marcador (bolita o línea blanca)
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(6.dp, 12.dp)
+                    .background(Color.White, RoundedCornerShape(2.dp))
+                    .border(1.dp, Color.Black.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
+            )
+        }
     }
 }

@@ -64,4 +64,8 @@ coverage/
 *.temp
 *.swp
 *.swo
-*~
+# Documentation (PBL Session)
+implementation_plan.md
+task.md
+walkthrough.md
+AhorrApp v1.2 & v1.3 Finalization.md

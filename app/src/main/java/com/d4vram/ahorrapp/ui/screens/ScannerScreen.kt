@@ -48,11 +48,20 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
+import android.media.AudioManager
+import android.media.ToneGenerator
+import com.d4vram.ahorrapp.viewmodel.TpvViewModel
+import com.d4vram.ahorrapp.viewmodel.rememberTpvViewModel
+import androidx.compose.runtime.collectAsState
+
 private const val TAG = "ScannerScreen"
 
 @SuppressLint("MissingPermission")
 @Composable
-fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
+fun ScannerScreen(
+    viewModel: TpvViewModel = rememberTpvViewModel(),
+    onBarcodeScanned: (String) -> Unit
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -96,15 +105,33 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
 
     val cameraController = remember {
         LifecycleCameraController(context).apply {
-            setEnabledUseCases(
-                LifecycleCameraController.IMAGE_ANALYSIS or LifecycleCameraController.IMAGE_CAPTURE
-            )
+            setEnabledUseCases(LifecycleCameraController.IMAGE_ANALYSIS)
+        }
+    }
+
+    val scanSoundEnabled by viewModel.scanSoundEnabled.collectAsState()
+    val toneGenerator = remember { 
+        runCatching { ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100) }.getOrNull()
+    }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            toneGenerator?.release()
         }
     }
 
     val scanner = remember {
         val options = BarcodeScannerOptions.Builder()
-            .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8)
+            .setBarcodeFormats(
+                Barcode.FORMAT_EAN_13, 
+                Barcode.FORMAT_EAN_8,
+                Barcode.FORMAT_QR_CODE,
+                Barcode.FORMAT_CODE_128,
+                Barcode.FORMAT_UPC_A,
+                Barcode.FORMAT_UPC_E,
+                Barcode.FORMAT_AZTEC,
+                Barcode.FORMAT_DATA_MATRIX
+            )
             .build()
         BarcodeScanning.getClient(options)
     }
@@ -170,6 +197,10 @@ fun ScannerScreen(onBarcodeScanned: (String) -> Unit) {
                         if (!code.isNullOrEmpty() && !alreadyHandled) {
                             alreadyHandled = true
                             showSuccessAnimation = true
+
+                            if (scanSoundEnabled) {
+                                toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, 150)
+                            }
 
                             // Enviar evento de analytics para escaneo
                             // Nota: El ViewModel manejará el envío del evento completo cuando se guarde el precio

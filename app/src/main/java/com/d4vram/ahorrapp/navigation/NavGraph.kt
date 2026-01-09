@@ -22,6 +22,7 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
         composable("onboarding") {
             OnboardingScreen(
                 onFinish = {
+                    viewModel.completeOnboarding()
                     navController.navigate("welcome") {
                         popUpTo("onboarding") { inclusive = true }
                     }
@@ -66,7 +67,7 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
         }
 
         composable("scanner") {
-            ScannerScreen { barcode ->
+            ScannerScreen(viewModel = viewModel) { barcode ->
                 navController.navigate("entry/$barcode")
             }
         }
@@ -102,7 +103,10 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
         }
 
         composable("profile") {
-            ProfileScreen(onBack = { navController.popBackStack() })
+            ProfileScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

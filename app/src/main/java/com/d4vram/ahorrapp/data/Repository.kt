@@ -204,6 +204,17 @@ class Repository(context: Context) {
         }
     }
 
+    suspend fun getAllPricesForBarcode(barcode: String): Result<List<SupabasePriceEntry>> {
+        return runCatching {
+            supabase.from("prices").select {
+                filter {
+                    eq("barcode", barcode)
+                }
+                order("created_at", Order.DESCENDING)
+            }.decodeList<SupabasePriceEntry>()
+        }
+    }
+
     suspend fun fetchProduct(barcode: String): ProductInfo? {
         // 1. Primero buscar en nuestra base de datos local de productos
         val localProduct = productDao.getProductByBarcode(barcode)

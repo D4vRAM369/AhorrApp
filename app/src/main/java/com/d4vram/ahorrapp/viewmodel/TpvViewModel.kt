@@ -49,6 +49,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var existingPrice by mutableStateOf<SupabasePriceEntry?>(null)
         private set
 
+    var historicalPricesForBarcode by mutableStateOf<List<SupabasePriceEntry>>(emptyList())
+        private set
+
     var isLoadingExistingPrice by mutableStateOf(false)
         private set
 
@@ -61,16 +64,21 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
             val cleanMarket = supermarket.trim()
             isLoadingExistingPrice = true
             existingPrice = null
+            historicalPricesForBarcode = emptyList()
             fetchError = null
             
-            val resultState = repo.getLatestPriceForBarcode(cleanBarcode, cleanMarket)
+            // Lanzamos ambas peticiones
+            val latestResult = repo.getLatestPriceForBarcode(cleanBarcode, cleanMarket)
+            val allResult = repo.getAllPricesForBarcode(cleanBarcode)
             
-            resultState.onSuccess { entry ->
+            latestResult.onSuccess { entry ->
                 existingPrice = entry
             }.onFailure { error ->
-                existingPrice = null
                 fetchError = error.message
-                error.printStackTrace()
+            }
+
+            allResult.onSuccess { list ->
+                historicalPricesForBarcode = list
             }
             
             isLoadingExistingPrice = false
@@ -104,6 +112,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentNickname = MutableStateFlow("Usuario Anónimo")
     val currentNickname: StateFlow<String> = _currentNickname.asStateFlow()
 
+    private val _scanSoundEnabled = MutableStateFlow(true)
+    val scanSoundEnabled: StateFlow<Boolean> = _scanSoundEnabled.asStateFlow()
+
     private val _showOnboarding = MutableStateFlow(true)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
 
@@ -114,9 +125,26 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         checkLicense()
-        loadOnboardingState()
+        loadOnboardingState() // Aquí está el OnboardingState, solo que no sé si la primera al abrir la actualización con las 5 pantallas, o la que se abre cada vez que abrimos la app, tengo que mirarlo, preguntar y apuntar.
+        loadUserSettings() // Nueva función para cargar sonidos, etc.
         loadUserFavorites()
         loadUserAlerts()
+    }
+
+    private fun loadUserSettings() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            _scanSoundEnabled.value = prefs.getBoolean("scan_sound_enabled", true)
+        }
+    }
+
+    fun toggleScanSound() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newValue = !_scanSoundEnabled.value
+            _scanSoundEnabled.value = newValue
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putBoolean("scan_sound_enabled", newValue).apply()
+        }
     }
 
     private fun checkLicense() {
@@ -133,6 +161,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.updateNickname(deviceId, newName)
             _currentNickname.value = newName
+            // También guardar localmente para respaldo
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putString("user_nickname", newName).apply()
         }
     }
 

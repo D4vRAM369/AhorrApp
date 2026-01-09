@@ -81,7 +81,7 @@ import java.io.InputStreamReader
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
-    viewModel: TpvViewModel = rememberTpvViewModel()
+    viewModel: TpvViewModel
 ) {
     val context = LocalContext.current
     val history by viewModel.observeHistory().collectAsState(initial = emptyList())
@@ -231,6 +231,36 @@ fun ProfileScreen(
                             }
                         }
                     }
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Sección Sonido
+            Text("Sonido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            val scanSoundEnabled by viewModel.scanSoundEnabled.collectAsState()
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Sonido de escaneo", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Reproduce un 'bip' al detectar un código correctamente.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        checked = scanSoundEnabled,
+                        onCheckedChange = { viewModel.toggleScanSound() }
+                    )
                 }
             }
 
