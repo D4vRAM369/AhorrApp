@@ -52,6 +52,16 @@ data class SupabasePriceEntry(
 )
 
 @Serializable
+data class SupabaseProduct(
+    val barcode: String,
+    val name: String,
+    val brand: String? = null,
+    @SerialName("more_info") val moreInfo: String? = null,
+    @SerialName("image_url") val imageUrl: String? = null,
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
 data class DeviceLicense(
     @SerialName("device_id") val deviceId: String,
     val isActive: Boolean = true,
@@ -227,7 +237,32 @@ class Repository(context: Context) {
             )
         }
 
-        // 2. Intentar con OpenFoodFacts
+        // 2. Intentar buscar en Supabase (Centralizado)
+        val supabaseProduct = runCatching {
+            supabase.from("products").select {
+                filter { eq("barcode", barcode) }
+                limit(1)
+            }.decodeSingleOrNull<SupabaseProduct>()
+        }.getOrNull()
+
+        if (supabaseProduct != null) {
+            // Guardar en local para futuras búsquedas rápidas
+            saveLocalProduct(
+                barcode = supabaseProduct.barcode,
+                name = supabaseProduct.name,
+                brand = supabaseProduct.brand,
+                moreInfo = supabaseProduct.moreInfo,
+                imageUrl = supabaseProduct.imageUrl
+            )
+            return ProductInfo(
+                name = supabaseProduct.name,
+                brand = supabaseProduct.brand,
+                moreInfo = supabaseProduct.moreInfo,
+                imageUrl = supabaseProduct.imageUrl
+            )
+        }
+
+        // 3. Intentar con OpenFoodFacts
         val response = try {
             openFoodApi.fetchProduct(barcode)
         } catch (e: Exception) {
@@ -239,11 +274,22 @@ class Repository(context: Context) {
             if (name.isNotEmpty()) {
                 val brand = response.product.brands?.split(",")?.firstOrNull()?.trim()
                 val imageUrl = response.product.imageUrl
-                return ProductInfo(name = name, brand = brand, imageUrl = imageUrl)
+                
+                val productInfo = ProductInfo(name = name, brand = brand, imageUrl = imageUrl)
+                
+                // Subir a Supabase para que otros aprovechen esta info
+                uploadProductToSupabase(SupabaseProduct(
+                    barcode = barcode,
+                    name = name,
+                    brand = brand,
+                    imageUrl = imageUrl
+                ))
+                
+                return productInfo
             }
         }
 
-        // 3. Si falla, intentar buscar en Supabase
+        // 4. Si falla, intentar buscar en Supabase (TABLA PRECIOS)
         // Buscamos si ya existe algún precio registrado para este código, y cogemos su nombre
         return runCatching {
             val existingEntry = supabase.from("prices").select {
@@ -255,11 +301,21 @@ class Repository(context: Context) {
             }.decodeList<SupabasePriceEntry>().firstOrNull()
 
             if (existingEntry != null && !existingEntry.productName.isNullOrBlank()) {
-                  ProductInfo(
+                  val info = ProductInfo(
                     name = existingEntry.productName,
                     brand = existingEntry.brand,
                     moreInfo = existingEntry.moreInfo
                 )
+                
+                // También lo subimos a la tabla central de productos si lo encontramos aquí
+                uploadProductToSupabase(SupabaseProduct(
+                    barcode = barcode,
+                    name = existingEntry.productName,
+                    brand = existingEntry.brand,
+                    moreInfo = existingEntry.moreInfo
+                ))
+                
+                info
             } else {
                 null
             }
@@ -602,6 +658,24 @@ class Repository(context: Context) {
             imageUrl = imageUrl
         )
         productDao.insert(product)
+        
+        // Sincronizar con Supabase
+        uploadProductToSupabase(SupabaseProduct(
+            barcode = barcode,
+            name = name,
+            brand = brand,
+            moreInfo = moreInfo,
+            imageUrl = imageUrl
+        ))
+    }
+
+    suspend fun uploadProductToSupabase(product: SupabaseProduct) {
+        runCatching {
+            // Usamos upsert para que si ya existe, se actualice la info
+            supabase.from("products").upsert(product, onConflict = "barcode")
+        }.onFailure {
+            android.util.Log.e("Repository", "Error uploading product to Supabase: ${it.message}")
+        }
     }
 
     suspend fun getLocalProduct(barcode: String): ProductEntity? {
