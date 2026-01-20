@@ -31,6 +31,7 @@ import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.ExistingPeriodicWorkPolicy
+import com.d4vram.ahorrapp.worker.BackupWorker
 import com.d4vram.ahorrapp.workers.PriceAlertWorker
 import java.util.concurrent.TimeUnit
 
@@ -115,6 +116,9 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     private val _scanSoundEnabled = MutableStateFlow(true)
     val scanSoundEnabled: StateFlow<Boolean> = _scanSoundEnabled.asStateFlow()
 
+    private val _autoBackupEnabled = MutableStateFlow(false)
+    val autoBackupEnabled: StateFlow<Boolean> = _autoBackupEnabled.asStateFlow()
+
     private val _showOnboarding = MutableStateFlow(true)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
 
@@ -135,6 +139,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
             _scanSoundEnabled.value = prefs.getBoolean("scan_sound_enabled", true)
+            _autoBackupEnabled.value = prefs.getBoolean("auto_backup_enabled", false)
         }
     }
 
@@ -144,6 +149,22 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
             _scanSoundEnabled.value = newValue
             val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
             prefs.edit().putBoolean("scan_sound_enabled", newValue).apply()
+        }
+    }
+
+    fun toggleAutoBackup() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newValue = !_autoBackupEnabled.value
+            _autoBackupEnabled.value = newValue
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putBoolean("auto_backup_enabled", newValue).apply()
+
+            // Schedule or unschedule backup worker
+            if (newValue) {
+                scheduleBackupWorker()
+            } else {
+                unscheduleBackupWorker()
+            }
         }
     }
 
@@ -494,6 +515,37 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     fun cancelPriceAlerts() {
         val workManager = WorkManager.getInstance(getApplication())
         workManager.cancelUniqueWork("price_alert_check")
+    }
+
+    // --- WORKMANAGER PARA BACKUPS AUTOMÁTICOS ---
+
+    private fun scheduleBackupWorker() {
+        val workManager = WorkManager.getInstance(getApplication())
+
+        // Crear constraints para ejecutar con conectividad opcional
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .build()
+
+        // Crear trabajo periódico (diario)
+        val backupWork = PeriodicWorkRequestBuilder<BackupWorker>(
+            1, TimeUnit.DAYS
+        )
+            .setConstraints(constraints)
+            .setInitialDelay(1, TimeUnit.HOURS) // Primera ejecución en 1 hora
+            .build()
+
+        // Programar el trabajo
+        workManager.enqueueUniquePeriodicWork(
+            "auto_backup",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            backupWork
+        )
+    }
+
+    private fun unscheduleBackupWorker() {
+        val workManager = WorkManager.getInstance(getApplication())
+        workManager.cancelUniqueWork("auto_backup")
     }
 
     // Funciones para sistema de mensajes push

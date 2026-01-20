@@ -59,6 +59,9 @@ logs/
 coverage/
 .nyc_output/
 
+# Notas PBL
+**/Notes PBL/
+
 # Temporary files
 *.tmp
 *.temp

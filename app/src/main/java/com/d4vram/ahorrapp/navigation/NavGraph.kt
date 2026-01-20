@@ -3,6 +3,8 @@ package com.d4vram.ahorrapp.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
 
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,7 +19,8 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
 
     NavHost(
         navController = navController,
-        startDestination = if (showOnboarding) "onboarding" else "welcome"
+        startDestination = if (showOnboarding) "onboarding" else "welcome",
+        modifier = Modifier.padding(padding)
     ) {
         composable("onboarding") {
             OnboardingScreen(

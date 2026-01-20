@@ -43,6 +43,7 @@ import com.d4vram.ahorrapp.data.PriceEntryEntity
 import com.d4vram.ahorrapp.viewmodel.TpvViewModel
 import com.d4vram.ahorrapp.viewmodel.rememberTpvViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import java.io.File
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -239,7 +240,7 @@ fun ProfileScreen(
             // Sección Sonido
             Text("Sonido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             val scanSoundEnabled by viewModel.scanSoundEnabled.collectAsState()
-            
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -260,6 +261,36 @@ fun ProfileScreen(
                     androidx.compose.material3.Switch(
                         checked = scanSoundEnabled,
                         onCheckedChange = { viewModel.toggleScanSound() }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Sección Backup
+            Text("Backup de datos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsState()
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Backup automático diario", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Crea copias de seguridad automáticas de tus datos cada día.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        checked = autoBackupEnabled,
+                        onCheckedChange = { viewModel.toggleAutoBackup() }
                     )
                 }
             }
@@ -337,6 +368,21 @@ fun ProfileScreen(
                     onClick = {
                         showSettingsMenu = false
                         jsonLauncher.launch(arrayOf("application/json"))
+                    }
+                )
+
+                // Opción para crear backup manual
+                DropdownMenuItem(
+                    text = { Text("Crear backup manual") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = "Backup"
+                        )
+                    },
+                    onClick = {
+                        showSettingsMenu = false
+                        createManualBackup(context, viewModel)
                     }
                 )
 
@@ -516,6 +562,75 @@ private fun importJson(context: Context, uri: android.net.Uri, onResult: (Int) -
     } catch (e: Exception) {
         Toast.makeText(context, "Error al importar JSON: ${e.message}", Toast.LENGTH_LONG).show()
         onResult(-1)
+    }
+}
+
+// Función para crear backup manual
+private fun createManualBackup(context: Context, viewModel: TpvViewModel) {
+    // Usar la misma lógica que exportJson pero con nombre de backup
+    val data = viewModel.observeHistory() // Esto es Flow, necesitamos collect
+
+    // Como es manual, ejecutar en coroutine
+    kotlinx.coroutines.GlobalScope.launch {
+        try {
+            val history = viewModel.observeHistory().first() // Obtener datos actuales
+
+            if (history.isEmpty()) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    Toast.makeText(context, "No hay datos para backup", Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+
+            // Crear estructura de backup
+            val backupData = ExportData(
+                exportDate = System.currentTimeMillis(),
+                appVersion = "1.2",
+                totalEntries = history.size,
+                entries = history.map { entry: PriceEntryEntity ->
+                    ExportEntry(
+                        id = entry.id,
+                        barcode = entry.barcode,
+                        productName = entry.productName,
+                        supermarket = entry.supermarket,
+                        price = entry.price,
+                        timestamp = entry.timestamp
+                    )
+                }
+            )
+
+            // Convertir a JSON
+            val jsonString = Json.encodeToString(backupData)
+
+            // Crear nombre de archivo con timestamp
+            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", java.util.Locale.getDefault())
+            val timestamp = dateFormat.format(java.util.Date())
+            val fileName = "ahorrapp_manual_backup_$timestamp.json"
+
+            // Guardar en cache por ahora (para compartir)
+            val file = File(context.cacheDir, fileName)
+            file.writeText(jsonString)
+
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "Backup Manual - AhorrApp")
+                putExtra(Intent.EXTRA_TEXT, "Backup manual de mis datos de precios.")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                context.startActivity(Intent.createChooser(intent, "Compartir backup manual con..."))
+                Toast.makeText(context, "Backup manual creado", Toast.LENGTH_SHORT).show()
+            }
+
+        } catch (e: Exception) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                Toast.makeText(context, "Error al crear backup: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
 

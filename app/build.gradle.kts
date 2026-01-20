@@ -18,14 +18,28 @@ if (localPropertiesFile.exists()) {
 
 android {
     namespace = "com.d4vram.ahorrapp"
-    compileSdk = 34   // ← API estable, 36 aún NO existe oficialmente
+    compileSdk = 35   // ← API estable, 36 aún NO existe oficialmente
+
+    signingConfigs {
+        create("release") {
+            val storePath = localProperties.getProperty("RELEASE_STORE_FILE")
+            if (!storePath.isNullOrEmpty()) {
+                storeFile = file(storePath)
+            }
+            storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD", "")
+            keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS", "")
+            keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD", "")
+            enableV2Signing = true
+            enableV3Signing = true
+        }
+    }
 
     defaultConfig {
         applicationId = "com.d4vram.ahorrapp"
-        minSdk = 24
-        targetSdk = 34
-        versionCode = 2
-        versionName = "1.1"
+        minSdk = 28
+        targetSdk = 35
+        versionCode = 3
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -35,13 +49,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false // ❌ TEMPORALMENTE DESACTIVADO
-            isShrinkResources = false // ❌ TEMPORALMENTE DESACTIVADO
+            isMinifyEnabled = false // ❌ DESACTIVADO: API OpenFoodFacts no funciona correctamnte con ofuscación
+            isShrinkResources = false // ❌ DESACTIVADO: API OpenFoodFacts no funciona correcamente con ofuscación
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -104,6 +118,8 @@ dependencies {
 
     // TESTING
     testImplementation(libs.junit)
+    testImplementation("io.mockk:mockk:1.13.10")  // Para mocking en unit tests
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")  // Para testing de coroutines
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
