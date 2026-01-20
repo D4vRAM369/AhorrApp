@@ -1,9 +1,65 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [1.2.0] - 2026-01-20
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### 2026-01-20
+- **351702a feat:** Mejorar arquitectura de la app con optimización de código nativo (NDK, C++, CMake)
+- **8e7d538 fix:** Solventado problema Edge‑to‑Edge que hacía que la pantalla colapsase con la barra de notificaciones
+- **bf5ec58 merge:** Merge branch 'main' (actual release)
+
+### 2026-01-10
+- **3a788b2 feat:** Añadida política de privacidad oficial
+- **d53bcd2 feat:** Sincronización de productos en Supabase y corrección de sintaxis onConflict
+
+### 2026-01-09
+- **3bec950 feat:** Pitido de escaneo y estadística térmica de precios; corrección de persistencia de nombre y zona
+- **a6ffb3b feat:** Pequeños retoques y mejoras generales
+
+### 2025-12-11
+- **b57182f fix:** Corrección de exportación JSON y mejora de validación de datos
+
+#### Nuevas Funcionalidades
+- Sonido de escaneo
+- Estadísticas térmicas de precios
+- Sincronización de productos en Supabase
+- Política de privacidad
+
+#### Arquitectura
+- Implementación de NDK (Native Development Kit) para mejor rendimiento y seguridad
+- Integración de código nativo C++ mediante interfaz JNI
+- Sistema de compilación mejorado con CMake
+- Soporte multi‑arquitectura (ARM64‑v8a, ARMv7, x86, x86_64)
+- Librerías nativas compiladas (`.so`) para protección mejorada del código
+
+#### Interfaz de Usuario
+- Optimización del layout de ProfileScreen (reducción de espaciado, eliminación de espacios innecesarios, reorganización, switch de sonido visible)
+- Mejor aprovechamiento del espacio visual en todas las pantallas
+
+#### Correcciones
+- Fix crítico Edge‑to‑Edge
+- Persistencia de datos
+- Sintaxis onConflict
+- Pequeños retoques y mejoras generales
+
+#### Rendimiento
+- Código base modernizado
+- Optimización de gestión de recursos
+- Mejoras en tiempos de respuesta
+- Compilación nativa para mejor rendimiento
+
+#### Mejoras Técnicas
+- Configuración de NDK en el build
+- Creación de interfaz JNI
+- Optimización del proceso de compilación
+- Mejora en sincronización de productos con la base de datos comunitaria
+- Protección mejorada del código mediante compilación nativa
+
+#### Documentación
+- Añadida política de privacidad oficial
+- Actualización de documentación técnica
+- Mejoras en comentarios del código
+
+---  
 
 ## [1.0.0] - 10-12-2025
 
@@ -37,87 +93,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Credenciales seguras** via local.properties
 - **Licencia por dispositivo** para control de calidad
 
+---  
+
 ## [1.1.0] - 11-12-2025
 
-
 ### Fixed
-
 **CORREGIDO ERROR CRÍTICO QUE HACÍA QUE LA API DE OPENFOODFACTS NO RECONOCIERA MUCHOS ALIMENTOS POR EL PROCESO DE Minify Y ShrinkResources, QUE HAN SIDO DESACTIVADOS POR EL MOMENTO.**
 
-## **RECOMIENDO ENCARECIDAMENTE LA DESCARGA DE LA NUEVA VERSIÓN 1.1 PARA UNA MEJOR FUNCIONALIDAD DE LA APLICACIÓN**
-
-Además de ésta corrección crítica, varios cambios han sido añadidos:
-
 ### Added
-- **Device ID tracking** - Mejor identificación de usuarios por dispositivo
-- **Analytics foundation** - Base de datos preparada para métricas de usuarios
-- **Enhanced data collection** - Campos device_id y nickname en precios
-- **Sistema de mensajes push completo** - Comunicación directa con usuarios desde Supabase
-- **Página de personalización en onboarding** - Campos nickname y zona de compra en OnboardingPage6
-- **Animaciones de éxito en escáner** - Feedback visual con círculo verde al detectar códigos
-- **Chip de ajustes avanzados** - Menú desplegable con opciones de exportación e importación
-- **Autoscroll inteligente** - Solo activa cuando hay contenido que no cabe en pantalla
-- **Exportación de datos JSON** - Historial completo exportable en formato estructurado
-- **Sistema de analytics avanzado** - Tracking completo de eventos y métricas de usuario
+- Device ID tracking
+- Analytics foundation
+- Enhanced data collection (device_id, nickname)
+- Sistema de mensajes push completo
+- Página de personalización en onboarding
+- Animaciones de éxito en escáner
+- Chip de ajustes avanzados
+- Autoscroll inteligente
+- Exportación de datos JSON
+- Sistema de analytics avanzado
 
 ### Changed
-- **Database schema** - Nuevos campos en tabla prices para mejor tracking
-- **Repository layer** - Actualizado para incluir device_id en inserciones
-- **Onboarding mejorado** - 6 páginas en lugar de 5, con personalización final
-- **Interfaz de perfil** - Nueva sección de ajustes con chip interactivo
-- **Feedback visual** - Animaciones y transiciones más fluidas
-- **Navegación** - Nueva ruta para pantalla de mensajes push
-- **Backward compatibility** - Mantenida compatibilidad total con v1.0
+- Database schema (nuevos campos en `prices`)
+- Repository layer (uso de `device_id`)
+- Onboarding mejorado (6 páginas)
+- Interfaz de perfil (chip interactivo)
+- Feedback visual (animaciones)
+- Navegación (nueva pantalla de mensajes push)
+- Backward compatibility mantenida
 
 ### Technical
-- **Supabase integration** - Nuevas tablas: users, user_analytics, analytics_events, push_messages, message_views
-- **Device identification** - Función Context.getDeviceId() implementada
-- **Data models** - SupabasePriceEntry actualizado con device_id
-- **PushMessageScreen** - Nueva pantalla dedicada para mensajes del sistema
-- **Analytics events** - Tracking de escaneos, favoritos, alertas y navegación
-- **Message views tracking** - Registro de interacciones con mensajes push
-- **Smart autoscroll** - Detección automática de overflow de contenido
-- **JSON export/import** - Funcionalidad completa de gestión de datos
+- Supabase integration (nuevas tablas)
+- Device identification (`Context.getDeviceId()`)
+- Data models actualizados
+- PushMessageScreen
+- Analytics events
+- Message views tracking
+- Smart autoscroll
+- JSON export/import
 
 ### Security
-- **Privacy enhanced** - Mejor control de datos por dispositivo
-- **No breaking changes** - Compatibilidad total con versiones anteriores
-- **JSON export/import** - Funcionalidad completa de gestión de datos
-- **Enhanced notifications** - Mejor diseño responsive y estado visual
+- Privacy enhanced
+- No breaking changes
+- JSON export/import
+- Enhanced notifications
 
 ### UI/UX Improvements
-- **Animaciones de éxito** - Feedback satisfactorio al escanear productos
-- **Chip de ajustes** - Acceso rápido a funcionalidades avanzadas
-- **Onboarding personalizado** - Experiencia de bienvenida más completa
-- **Mensajes push nativos** - Integración perfecta con la app
-- **Responsive design** - Mejor adaptación a diferentes tamaños de pantalla
+- Animaciones de éxito
+- Chip de ajustes
+- Onboarding personalizado
+- Mensajes push nativos
+- Responsive design
+
+---  
 
 ## [Unreleased]
 
 ### Planned
-- Dashboard de analytics con gráficos visuales (base implementada)
-- Sistema de autenticación de usuarios
+- Dashboard de analytics
+- Sistema de autenticación
 - Modo offline mejorado
-- Gamificación con puntos y logros
-- API pública para integraciones de terceros
-- Optimización de APK con minify activado
-- Tests automatizados completos
+- Gamificación
+- API pública
+- Optimización de APK con minify
+- Tests automatizados
 - Screenshots en README
 - Badges de build status
 - Soporte multiidioma
 
----
+---  
 
-## Development Notes
-
-- **Initial commit**: Proyecto base con estructura Android
-- **Database integration**: Implementación de Supabase
-- **UI overhaul**: Migración completa a Compose
-- **Feature complete**: Todas las funcionalidades core implementadas
-- **v1.1.0 release**: Sistema de device tracking y analytics foundation
-- **Push messaging system**: Comunicación directa con usuarios implementada
-- **Onboarding enhancement**: Página de personalización y autoscroll inteligente
-- **UI animations**: Feedback visual mejorado con animaciones de éxito
-- **Advanced settings**: Chip de ajustes con exportación JSON
-- **Analytics tracking**: Sistema completo de eventos y métricas
-- **Production ready**: Build limpio, tests básicos, CI configurado
+All notable changes to this project will be documented in this file.  
+The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
