@@ -196,18 +196,18 @@ Un recorrido visual por las principales pantallas de la app. Tamaño reducido (*
       <br/><sub>Bienvenida clara</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/183f0a7a-680f-4bda-b68f-164fa1bc1f6a" width="140"/>
+      <img src="https://github.com/user-attachments/assets/6e752c29-c4ca-4a3e-96d1-9e57082a989c" width="140"/>
       <br/><sub>Bienvenida clara 2</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/1c5f576c-39c7-41ab-a840-4b8ff539acc5" width="140"/>
+      <img src="https://github.com/user-attachments/assets/6fb3af71-7f67-4052-8aa2-542c682efe7b" width="140"/>
       <br/><sub>Bienvenida oscura</sub>
     </td>
   </tr>
 
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/756341be-27cb-411e-a2c9-6d828ab16cf7" width="140"/>
+      <img src="https://github.com/user-attachments/assets/795811f1-2af7-4e07-bed2-e64b59487204" width="140"/>
       <br/><sub>Bienvenida oscura 2</sub>
     </td>
   </tr>
@@ -215,19 +215,22 @@ Un recorrido visual por las principales pantallas de la app. Tamaño reducido (*
 
 ---
 
-## 📚 Historial
+## 📚 Historial y Pantalla tras escaneo de producto
 
 <table>
   <tr>
     <td align="center">
       <img src="https://github.com/user-attachments/assets/db009d2c-d4f8-449a-aa6a-0ec2e0a03121" width="140"/>
-      <br/><sub>Historial 1</sub>
+      <br/><sub>Historial</sub>
     </td>
     <td align="center">
       <img src="https://github.com/user-attachments/assets/0a0732bd-f1b5-4a01-8edb-5577f1f53db5" width="140"/>
-      <br/><sub>Historial 2</sub>
+      <br/><sub>Pantalla tras escaneo</sub>
     </td>
-  </tr>
+   <td align="center">
+    <img src="https://github.com/user-attachments/assets/e1c51d0d-b9a4-4ee3-a72d-09cd5740f42c" width="140" />
+<br/><sub>Comparador de precios en pantalla de escaneo<br>si se ha escaneado previamente ese producto</sub>
+  </td>
 </table>
 
 ---
@@ -273,11 +276,12 @@ Un recorrido visual por las principales pantallas de la app. Tamaño reducido (*
       <br/><sub>Dropdown supermercados</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/d3e68043-d694-4551-ac6a-c7fb990c7a04" width="140"/>
+      <img src="https://github.com/user-attachments/assets/3c639fb0-cbd1-4a92-ad2c-b7c8a0148d16" width="140"/>
       <br/><sub>Perfil y ajustes</sub>
     </td>
   </tr>
 </table>
+
 
 ---
 
@@ -311,8 +315,8 @@ Un recorrido visual por las principales pantallas de la app. Tamaño reducido (*
 
 ### Lo que Necesitas
 
-- Android 7.0 (API 24) o superior
-- ~50MB de espacio disponible
+- Android 9.0 (API 28) o superior
+- ~100MB de espacio disponible _(la apk pesa poco menos de 80mb, pero cuento con 20mb extra de espacio que se irá llenando)_
 - Cámara para escanear códigos de barras
 - Conexión a internet para sincronización comunitaria
 
