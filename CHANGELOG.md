@@ -153,7 +153,6 @@
 - Sistema de autenticación
 - Modo offline mejorado
 - Gamificación
-- API pública
 - Optimización de APK con minify
 - Tests automatizados
 - Screenshots en README
