@@ -93,9 +93,10 @@ data class PriceAlert(
 class Repository(context: Context) {
 
     // Cliente Supabase conectado a tu proyecto real
+    // ✅ Claves obtenidas desde código nativo C++ (SecureKeys)
     private val supabase = createSupabaseClient(
-        supabaseUrl = BuildConfig.SUPABASE_URL,
-        supabaseKey = BuildConfig.SUPABASE_KEY
+        supabaseUrl = SecureKeys.getSupabaseUrl(),
+        supabaseKey = SecureKeys.getSupabaseKey()
     ) {
         // Configuración tolerante a fallos para el JSON
         defaultSerializer = KotlinXSerializer(Json {
@@ -107,7 +108,8 @@ class Repository(context: Context) {
     }
 
     init {
-        Log.e("SupabaseConfig", "URL: ${BuildConfig.SUPABASE_URL}")
+        // Log removido - las claves ya no están en BuildConfig
+        // Log.e("SupabaseConfig", "URL: ${BuildConfig.SUPABASE_URL}")
     }
 
     private val openFoodApi = Retrofit.Builder()

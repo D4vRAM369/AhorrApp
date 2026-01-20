@@ -78,3 +78,11 @@ DOCS_SYNC_WALKTHROUGH.md
 EXPLICACION_PBL_SYNC_SUPABASE.md
 DOCS_SYNC_*.md
 EXPLICACION_PBL_*.md
+
+# Documentación privada (no subir)
+docs/
+
+# NDK Security - Claves API en código nativo
+# IMPORTANTE: No subir keys.cpp con claves reales al repositorio
+app/src/main/cpp/keys.cpp
+

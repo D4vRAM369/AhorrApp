@@ -134,7 +134,7 @@ fun ProfileScreen(
                 .padding(padding)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Sección Usuario
             Text("Información de usuario", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -164,7 +164,33 @@ fun ProfileScreen(
             Text("Estadísticas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             StatsCard(history)
 
-            Spacer(Modifier.height(10.dp))
+            // Sección Sonido (movida aquí para mejor visibilidad)
+            Text("Sonido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            val scanSoundEnabled by viewModel.scanSoundEnabled.collectAsState()
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Sonido de escaneo", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Reproduce un 'bip' al detectar un código correctamente.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        checked = scanSoundEnabled,
+                        onCheckedChange = { viewModel.toggleScanSound() }
+                    )
+                }
+            }
 
             // Sección Notificaciones
             Text("Notificaciones", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -235,38 +261,6 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
-
-            // Sección Sonido
-            Text("Sonido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            val scanSoundEnabled by viewModel.scanSoundEnabled.collectAsState()
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Sonido de escaneo", style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            "Reproduce un 'bip' al detectar un código correctamente.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    androidx.compose.material3.Switch(
-                        checked = scanSoundEnabled,
-                        onCheckedChange = { viewModel.toggleScanSound() }
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(10.dp))
-
             // Sección Backup
             Text("Backup de datos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsState()
@@ -294,8 +288,6 @@ fun ProfileScreen(
                     )
                 }
             }
-
-            Spacer(Modifier.height(10.dp))
 
             // Sección Ajustes Avanzados
             Text("Ajustes avanzados", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -401,8 +393,6 @@ fun ProfileScreen(
                     }
                 )
             }
-
-            Spacer(Modifier.height(10.dp))
 
             // Sección Datos
             Text("Gestión de datos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
