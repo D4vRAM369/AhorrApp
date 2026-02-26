@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.3.0] - 2026-02-26
+
+### 2026-02-26
+- **4fbf08b feat:** Sincronización masiva de pendientes desde el dashboard (botón en Home, estado `isSynced`, migración Room y conteo de pendientes)
+- **445ee26 fix:** La sync de precios ya no se bloquea si falla el `upsert` de `products` en Supabase (se registra warning y continúa)
+- **9846ff3 chore:** Limpieza del repositorio (salida de `.idea` del índice) y refuerzo de `.gitignore` (`.kotlin/`, `**/build/`)
+
+#### Nuevas Funcionalidades
+- Botón de sincronización masiva en el dashboard (Home), junto a ajustes
+- Sincronización en lote de registros locales pendientes con Supabase
+- Conteo de pendientes de sincronización visible en Home
+- Estado de sincronización local por registro (`isSynced`) en Room
+
+#### Cambios en Sincronización / Supabase
+- La sincronización individual y masiva marca registros locales como sincronizados sin duplicar filas en el historial local
+- La subida de precios intenta actualizar también la tabla `products` para mejorar la detección de productos al escanear
+- Si falla `products`, la sincronización de `prices` continúa (mejor resiliencia)
+
+#### Interfaz de Usuario
+- Indicador visual de pendientes de sync en Home (`X pendientes` / `Sync OK`)
+- Diálogo de confirmación y resumen de resultados para la sincronización masiva
+- Estado visible en Historial (`sincronizado` / `pendiente de sync`) y desactivación del chip `Sync` cuando ya está sincronizado
+
+#### Correcciones
+- La comparativa comunitaria al escanear vuelve a cargarse automáticamente por código de barras sin depender del supermercado seleccionado
+- Desacople entre historial comunitario por `barcode` y autocompletado de precio por supermercado
+
+#### Mejoras Técnicas
+- Migración Room `v2 -> v3` para añadir `isSynced` en `price_entries`
+- Nuevas consultas DAO para pendientes (`count`, listado, marcado como sincronizado)
+- Configuración local de Git y limpieza de artefactos de IDE/build para evitar ruido en el repositorio
+
+---  
+
 ## [1.2.0] - 2026-01-20
 
 ### 2026-01-20
