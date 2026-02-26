@@ -167,7 +167,10 @@ class Repository(context: Context) {
                     )
                 )
                 if (!productSynced) {
-                    error("No se pudo sincronizar el producto en Supabase")
+                    android.util.Log.w(
+                        "Repository",
+                        "No se pudo sincronizar el producto en Supabase (se continúa con el precio): $barcode"
+                    )
                 }
             }
 
