@@ -152,10 +152,25 @@ class Repository(context: Context) {
         brand: String?,
         moreInfo: String?,
         deviceId: String, // Nuevo parámetro requerido para v1.1
-        nickname: String? // Recibimos el autor
+        nickname: String?, // Recibimos el autor
+        saveLocalCopy: Boolean = true
     ): Boolean {
         var remoteSuccess = true
         runCatching {
+            if (!productName.isNullOrBlank()) {
+                val productSynced = uploadProductToSupabase(
+                    SupabaseProduct(
+                        barcode = barcode,
+                        name = productName,
+                        brand = brand,
+                        moreInfo = moreInfo
+                    )
+                )
+                if (!productSynced) {
+                    error("No se pudo sincronizar el producto en Supabase")
+                }
+            }
+
             supabase.from("prices").insert(
                 SupabasePriceEntry(
                     barcode = barcode,
@@ -186,17 +201,20 @@ class Repository(context: Context) {
             remoteSuccess = false
         }
 
-        priceDao.insert(
-            PriceEntryEntity(
-                barcode = barcode,
-                productName = productName,
-                supermarket = supermarket,
-                price = price,
-                timestamp = System.currentTimeMillis()
+        if (saveLocalCopy) {
+            priceDao.insert(
+                PriceEntryEntity(
+                    barcode = barcode,
+                    productName = productName,
+                    supermarket = supermarket,
+                    price = price,
+                    timestamp = System.currentTimeMillis(),
+                    isSynced = remoteSuccess
+                )
             )
-        )
+        }
 
-    return remoteSuccess
+        return remoteSuccess
     }
 
     suspend fun getLatestPriceForBarcode(
@@ -325,6 +343,14 @@ class Repository(context: Context) {
     }
 
     fun observePriceHistory(): Flow<List<PriceEntryEntity>> = priceDao.observeAll()
+
+    fun observePendingSyncCount(): Flow<Int> = priceDao.observePendingSyncCount()
+
+    suspend fun getUnsyncedEntries(): List<PriceEntryEntity> = priceDao.getUnsyncedEntries()
+
+    suspend fun markPriceSynced(id: Long) {
+        priceDao.markSynced(id)
+    }
 
     suspend fun deletePrice(id: Long) {
         priceDao.delete(id)
@@ -671,13 +697,13 @@ class Repository(context: Context) {
         ))
     }
 
-    suspend fun uploadProductToSupabase(product: SupabaseProduct) {
-        runCatching {
+    suspend fun uploadProductToSupabase(product: SupabaseProduct): Boolean {
+        return runCatching {
             // Usamos upsert para que si ya existe, se actualice la info
             supabase.from("products").upsert(product, onConflict = "barcode")
         }.onFailure {
             android.util.Log.e("Repository", "Error uploading product to Supabase: ${it.message}")
-        }
+        }.isSuccess
     }
 
     suspend fun getLocalProduct(barcode: String): ProductEntity? {

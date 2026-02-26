@@ -35,6 +35,12 @@ import com.d4vram.ahorrapp.worker.BackupWorker
 import com.d4vram.ahorrapp.workers.PriceAlertWorker
 import java.util.concurrent.TimeUnit
 
+data class BulkSyncResult(
+    val totalPending: Int,
+    val syncedCount: Int,
+    val failedCount: Int
+)
+
 class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = Repository(application.applicationContext)
@@ -56,8 +62,38 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     var isLoadingExistingPrice by mutableStateOf(false)
         private set
 
+    var isLoadingHistoricalPrices by mutableStateOf(false)
+        private set
+
     var fetchError by mutableStateOf<String?>(null)
         private set
+
+    var historyFetchError by mutableStateOf<String?>(null)
+        private set
+
+    var isSyncingPendingEntries by mutableStateOf(false)
+        private set
+
+    fun fetchHistoricalPrices(barcode: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val cleanBarcode = barcode.trim()
+            if (cleanBarcode.isBlank()) return@launch
+
+            isLoadingHistoricalPrices = true
+            historicalPricesForBarcode = emptyList()
+            historyFetchError = null
+
+            repo.getAllPricesForBarcode(cleanBarcode)
+                .onSuccess { list ->
+                    historicalPricesForBarcode = list
+                }
+                .onFailure { error ->
+                    historyFetchError = error.message
+                }
+
+            isLoadingHistoricalPrices = false
+        }
+    }
 
     fun fetchExistingPrice(barcode: String, supermarket: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -65,28 +101,23 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
             val cleanMarket = supermarket.trim()
             isLoadingExistingPrice = true
             existingPrice = null
-            historicalPricesForBarcode = emptyList()
             fetchError = null
-            
-            // Lanzamos ambas peticiones
+
             val latestResult = repo.getLatestPriceForBarcode(cleanBarcode, cleanMarket)
-            val allResult = repo.getAllPricesForBarcode(cleanBarcode)
-            
+
             latestResult.onSuccess { entry ->
                 existingPrice = entry
             }.onFailure { error ->
                 fetchError = error.message
             }
 
-            allResult.onSuccess { list ->
-                historicalPricesForBarcode = list
-            }
-            
             isLoadingExistingPrice = false
         }
     }
 
     fun observeHistory(): Flow<List<PriceEntryEntity>> = repo.observePriceHistory()
+
+    fun observePendingSyncCount(): Flow<Int> = repo.observePendingSyncCount()
 
     fun deleteEntry(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -96,7 +127,7 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateEntry(entry: PriceEntryEntity) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.updatePrice(entry)
+            repo.updatePrice(entry.copy(isSynced = false))
         }
     }
 
@@ -251,14 +282,61 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 brand = null, // Entry doesn't store brand yet, maybe later
                 moreInfo = null, // Entry doesn't store moreInfo yet
                 deviceId = deviceId, // Nuevo para v1.1
-                nickname = _currentNickname.value
+                nickname = _currentNickname.value,
+                saveLocalCopy = false
             )
+            if (success) {
+                repo.markPriceSynced(entry.id)
+            }
             launch(Dispatchers.Main) {
                 onResult(success)
             }
         }
     }
 
+    fun syncAllPendingEntries(onResult: (BulkSyncResult) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (isSyncingPendingEntries) return@launch
+            isSyncingPendingEntries = true
+            try {
+                val pendingEntries = repo.getUnsyncedEntries()
+                var synced = 0
+                var failed = 0
+
+                pendingEntries.forEach { entry ->
+                    val success = repo.postPrice(
+                        barcode = entry.barcode,
+                        supermarket = entry.supermarket,
+                        price = entry.price,
+                        productName = entry.productName,
+                        brand = null,
+                        moreInfo = null,
+                        deviceId = deviceId,
+                        nickname = _currentNickname.value,
+                        saveLocalCopy = false
+                    )
+                    if (success) {
+                        repo.markPriceSynced(entry.id)
+                        synced++
+                    } else {
+                        failed++
+                    }
+                }
+
+                launch(Dispatchers.Main) {
+                    onResult(
+                        BulkSyncResult(
+                            totalPending = pendingEntries.size,
+                            syncedCount = synced,
+                            failedCount = failed
+                        )
+                    )
+                }
+            } finally {
+                isSyncingPendingEntries = false
+            }
+        }
+    }
     fun importCsv(uri: android.net.Uri, contentResolver: android.content.ContentResolver, onResult: (Int) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {

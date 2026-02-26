@@ -324,6 +324,11 @@ private fun HistoryCard(
             Text("Precio: %.2f €".format(entry.price), style = MaterialTheme.typography.bodySmall)
             Text("Código: ${entry.barcode}", style = MaterialTheme.typography.bodySmall)
             Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                if (entry.isSynced) "Estado: sincronizado" else "Estado: pendiente de sync",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (entry.isSynced) Color(0xFF2E7D32) else MaterialTheme.colorScheme.primary
+            )
 
             Spacer(Modifier.height(8.dp))
 
@@ -347,7 +352,8 @@ private fun HistoryCard(
 
                 AssistChip(
                     onClick = onSync,
-                    label = { Text("Sync", style = MaterialTheme.typography.labelSmall) },
+                    enabled = !entry.isSynced,
+                    label = { Text(if (entry.isSynced) "Sync ✓" else "Sync", style = MaterialTheme.typography.labelSmall) },
                     leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, Modifier.size(16.dp)) },
                     colors = AssistChipDefaults.assistChipColors(
                         leadingIconContentColor = Color(0xFF2E7D32),

@@ -46,6 +46,7 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
         composable("home") {
             val isDarkMode by viewModel.isDarkMode.collectAsState()
             val currentPushMessage by viewModel.currentPushMessage.collectAsState()
+            val pendingSyncCount by viewModel.observePendingSyncCount().collectAsState(initial = 0)
 
             if (currentPushMessage != null) {
                 PushMessageScreen(
@@ -63,6 +64,9 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
                     onComparison = { navController.navigate("comparison") },
                     onFavorites = { navController.navigate("favorites") },
                     onSettings = { navController.navigate("profile") },
+                    pendingSyncCount = pendingSyncCount,
+                    isSyncingPendingEntries = viewModel.isSyncingPendingEntries,
+                    onSyncAllPendingEntries = { onResult -> viewModel.syncAllPendingEntries(onResult) },
                     isDarkMode = isDarkMode,
                     onToggleTheme = { viewModel.toggleDarkMode() }
                 )

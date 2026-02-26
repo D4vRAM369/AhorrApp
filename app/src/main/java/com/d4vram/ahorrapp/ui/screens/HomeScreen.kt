@@ -43,12 +43,14 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Search
 import com.d4vram.ahorrapp.R
+import com.d4vram.ahorrapp.viewmodel.BulkSyncResult
 
 @Composable
 fun HomeScreen(
@@ -57,9 +59,16 @@ fun HomeScreen(
     onComparison: () -> Unit,
     onFavorites: () -> Unit,
     onSettings: () -> Unit,
+    pendingSyncCount: Int,
+    isSyncingPendingEntries: Boolean,
+    onSyncAllPendingEntries: ((BulkSyncResult) -> Unit) -> Unit,
     isDarkMode: Boolean,
     onToggleTheme: () -> Unit
 ) {
+    var showSyncAllDialog by remember { mutableStateOf(false) }
+    var bulkSyncResult by remember { mutableStateOf<BulkSyncResult?>(null) }
+    var syncInfoMessage by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -98,16 +107,53 @@ fun HomeScreen(
                     }
                 )
 
-                androidx.compose.material3.IconButton(
-                    onClick = onSettings,
-                    modifier = Modifier.size(24.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Ajustes",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    androidx.compose.material3.IconButton(
+                        onClick = {
+                            if (pendingSyncCount <= 0) {
+                                syncInfoMessage = "No hay registros pendientes de sincronizar."
+                            } else {
+                                showSyncAllDialog = true
+                            }
+                        },
+                        enabled = !isSyncingPendingEntries,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        if (isSyncingPendingEntries) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Sincronizar pendientes con Supabase",
+                                tint = if (pendingSyncCount > 0) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+
+                    androidx.compose.material3.IconButton(
+                        onClick = onSettings,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Ajustes",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+
+                Text(
+                    text = if (pendingSyncCount > 0) "$pendingSyncCount pendientes" else "Sync OK",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (pendingSyncCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -287,5 +333,63 @@ fun HomeScreen(
             }
 
         }
+    }
+
+    if (showSyncAllDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showSyncAllDialog = false },
+            title = { Text("Sincronizar pendientes") },
+            text = {
+                Text("Se sincronizarán $pendingSyncCount registros pendientes con Supabase y también se actualizará la tabla de productos para que aparezcan al escanear.")
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        showSyncAllDialog = false
+                        onSyncAllPendingEntries { result ->
+                            bulkSyncResult = result
+                        }
+                    }
+                ) {
+                    Text("Sí, sincronizar")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showSyncAllDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    bulkSyncResult?.let { result ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { bulkSyncResult = null },
+            title = { Text("Resultado de sincronización") },
+            text = {
+                Text(
+                    "Pendientes: ${result.totalPending}\n" +
+                        "Sincronizados: ${result.syncedCount}\n" +
+                        "Fallidos: ${result.failedCount}"
+                )
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { bulkSyncResult = null }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if (syncInfoMessage != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { syncInfoMessage = null },
+            text = { Text(syncInfoMessage!!) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { syncInfoMessage = null }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }

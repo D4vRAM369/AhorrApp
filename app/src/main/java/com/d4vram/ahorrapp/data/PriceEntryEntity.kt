@@ -10,5 +10,6 @@ data class PriceEntryEntity(
     val productName: String?,
     val supermarket: String,
     val price: Double,
-    val timestamp: Long
+    val timestamp: Long,
+    val isSynced: Boolean = false
 )

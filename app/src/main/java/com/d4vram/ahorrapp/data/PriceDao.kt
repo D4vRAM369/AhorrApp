@@ -15,6 +15,15 @@ interface PriceDao {
     @Query("SELECT * FROM price_entries ORDER BY timestamp DESC")
     fun observeAll(): Flow<List<PriceEntryEntity>>
 
+    @Query("SELECT COUNT(*) FROM price_entries WHERE isSynced = 0")
+    fun observePendingSyncCount(): Flow<Int>
+
+    @Query("SELECT * FROM price_entries WHERE isSynced = 0 ORDER BY timestamp ASC")
+    suspend fun getUnsyncedEntries(): List<PriceEntryEntity>
+
+    @Query("UPDATE price_entries SET isSynced = 1 WHERE id = :id")
+    suspend fun markSynced(id: Long)
+
     @Query("DELETE FROM price_entries WHERE id = :id")
     suspend fun delete(id: Long)
 

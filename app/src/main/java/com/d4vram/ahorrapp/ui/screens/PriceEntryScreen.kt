@@ -51,6 +51,7 @@ fun PriceEntryScreen(
     LaunchedEffect(barcode) {
         if (barcode.isNotEmpty()) {
             viewModel.fetchProduct(barcode)
+            viewModel.fetchHistoricalPrices(barcode)
         }
     }
 
@@ -203,7 +204,7 @@ fun PriceEntryScreen(
         Spacer(Modifier.height(20.dp))
 
         // Comparación con Comunidad (Supabase)
-        if (viewModel.isLoadingExistingPrice) {
+        if (viewModel.isLoadingHistoricalPrices && viewModel.historicalPricesForBarcode.isEmpty()) {
             Text("Buscando precios en la comunidad...", style = MaterialTheme.typography.bodySmall)
         } else {
             val history = viewModel.historicalPricesForBarcode.sortedByDescending { it.createdAt }
@@ -299,7 +300,7 @@ fun PriceEntryScreen(
                         }
                     }
                 }
-            } else if (currentMarket.isNotBlank() && !viewModel.isLoadingExistingPrice) {
+            } else if (currentMarket.isNotBlank() && !viewModel.isLoadingHistoricalPrices) {
                 Text("Sé el primero en registrar este producto en la comunidad 🚀",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
