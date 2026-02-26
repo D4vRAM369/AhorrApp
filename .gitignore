@@ -23,6 +23,7 @@ local.properties
 
 # Gradle
 .gradle/
+.kotlin/
 gradle-app.setting
 !gradle-wrapper.jar
 
@@ -67,6 +68,9 @@ coverage/
 *.temp
 *.swp
 *.swo
+
+# Build outputs (all modules)
+**/build/
 # Documentation (PBL Session)
 implementation_plan.md
 task.md
@@ -85,4 +89,3 @@ docs/
 # NDK Security - Claves API en código nativo
 # IMPORTANTE: No subir keys.cpp con claves reales al repositorio
 app/src/main/cpp/keys.cpp
-
