@@ -95,7 +95,8 @@ fun responsiveIconSize(): Dp {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
-    val pagerState = rememberPagerState(pageCount = { 6 })
+    val totalPages = 7
+    val pagerState = rememberPagerState(pageCount = { totalPages })
     val scope = rememberCoroutineScope()
 
     Column(
@@ -126,7 +127,8 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
                 2 -> OnboardingPage3()
                 3 -> OnboardingPage4()
                 4 -> OnboardingPage5()
-                5 -> OnboardingPage6(onFinish = onFinish)
+                5 -> OnboardingPageTicketTip()
+                6 -> OnboardingPage6(onFinish = onFinish)
             }
         }
 
@@ -142,7 +144,7 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                repeat(6) { index ->
+                repeat(totalPages) { index ->
                     val isSelected = pagerState.currentPage == index
                     Box(
                         modifier = Modifier
@@ -155,7 +157,7 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
                                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                             )
                     )
-                    if (index < 5) Spacer(modifier = Modifier.width(8.dp))
+                    if (index < totalPages - 1) Spacer(modifier = Modifier.width(8.dp))
                 }
             }
 
@@ -183,19 +185,19 @@ fun OnboardingScreen(onFinish: () -> Unit, onSkip: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if (pagerState.currentPage < 5) {
+                        if (pagerState.currentPage < totalPages - 1) {
                             scope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             }
                         } else {
-                            // Página 5: completar onboarding
+                            // Última página: completar onboarding
                             onFinish()
                         }
                     },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text(if (pagerState.currentPage < 5) "Siguiente" else "¡Comenzar!")
+                    Text(if (pagerState.currentPage < totalPages - 1) "Siguiente" else "¡Comenzar!")
                 }
             }
         }
@@ -652,11 +654,103 @@ fun OnboardingPage5() {
 }
 
 @Composable
+fun OnboardingPageTicketTip() {
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(500)
+        scrollState.animateScrollTo(
+            value = (scrollState.maxValue * 0.15f).toInt(),
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 500,
+                easing = androidx.compose.animation.core.EaseOutCubic
+            )
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(responsivePadding())
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(responsiveIconSize())
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.tertiaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("🧾", style = MaterialTheme.typography.displayLarge)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Consejo rápido para aportar precios",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                "Tip: para mayor comodidad, en lugar de escanear uno por uno los precios en el supermercado, guarda el ticket y añádelos en casa con más calma.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text("✅ Forma cómoda de hacerlo", fontWeight = FontWeight.SemiBold)
+                    Text("1. Guarda el ticket al pagar", style = MaterialTheme.typography.bodySmall)
+                    Text("2. En casa, abre AhorrApp con tranquilidad", style = MaterialTheme.typography.bodySmall)
+                    Text("3. Registra varios precios seguidos", style = MaterialTheme.typography.bodySmall)
+                    Text("4. Usa la sync masiva si te quedas sin conexión", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun OnboardingPage6(onFinish: () -> Unit) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
     var nickname by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+
+    // Autoscroll suave si el contenido no cabe en pantalla
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(700)
+        if (scrollState.maxValue > 0) {
+            scrollState.animateScrollTo(
+                value = (scrollState.maxValue * 0.12f).toInt(),
+                animationSpec = androidx.compose.animation.core.tween(
+                    durationMillis = 700,
+                    easing = androidx.compose.animation.core.EaseOutCubic
+                )
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -667,7 +761,8 @@ fun OnboardingPage6(onFinish: () -> Unit) {
         Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

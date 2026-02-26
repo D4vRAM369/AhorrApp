@@ -153,14 +153,20 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
     private val _showOnboarding = MutableStateFlow(true)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
 
+    private val _showWelcomeScreen = MutableStateFlow(true)
+    val showWelcomeScreen: StateFlow<Boolean> = _showWelcomeScreen.asStateFlow()
+
     private val _currentPushMessage = MutableStateFlow<PushMessage?>(null)
     val currentPushMessage: StateFlow<PushMessage?> = _currentPushMessage.asStateFlow()
+
+    private var welcomeTrackedThisLaunch = false
 
     // deviceId is already declared at the top of the class
 
     init {
         checkLicense()
         loadOnboardingState() // Aquí está el OnboardingState, solo que no sé si la primera al abrir la actualización con las 5 pantallas, o la que se abre cada vez que abrimos la app, tengo que mirarlo, preguntar y apuntar.
+        loadWelcomeScreenState()
         loadUserSettings() // Nueva función para cargar sonidos, etc.
         loadUserFavorites()
         loadUserAlerts()
@@ -229,11 +235,31 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun loadWelcomeScreenState() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            val shownCount = prefs.getInt("welcome_shown_count", 0)
+            _showWelcomeScreen.value = shownCount < 3
+        }
+    }
+
     fun completeOnboarding() {
         viewModelScope.launch(Dispatchers.IO) {
             val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
             prefs.edit().putBoolean("onboarding_completed", true).apply()
             _showOnboarding.value = false
+        }
+    }
+
+    fun registerWelcomeScreenShown() {
+        if (welcomeTrackedThisLaunch) return
+        welcomeTrackedThisLaunch = true
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val prefs = getApplication<Application>().getSharedPreferences("ahorrapp_prefs", android.content.Context.MODE_PRIVATE)
+            val shownCount = prefs.getInt("welcome_shown_count", 0)
+            val nextCount = (shownCount + 1).coerceAtMost(3)
+            prefs.edit().putInt("welcome_shown_count", nextCount).apply()
         }
     }
     
@@ -346,17 +372,12 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 
                 reader.useLines { lines ->
                     lines.drop(1).forEach { line -> // Skip header
-                        val parts = line.split(",") // Basic parsing, ideally use a standardized CSV lib
+                        val parts = parseCsvLine(line)
                         if (parts.size >= 5) {
-                            // Quick fix for parsing logic to match export
-                            // "ID,Barcode,Name,Supermarket,Price,Date"
-                            // NOTE: Basic csv split breaks on commas inside quotes. 
-                            // For this MVP we assume simple data or refined regex logic if needed.
-                            // For simplicity/robustness in MVP without external libs:
                             try {
                                 val barcode = parts[1]
-                                val name = parts[2].replace("\"", "")
-                                val market = parts[3].replace("\"", "")
+                                val name = parts[2]
+                                val market = parts[3]
                                 val price = parts[4].toDoubleOrNull() ?: 0.0
                                 val timestamp = parts.getOrNull(5)?.toLongOrNull() ?: System.currentTimeMillis()
                                 
@@ -384,6 +405,32 @@ class TpvViewModel(application: Application) : AndroidViewModel(application) {
                 launch(Dispatchers.Main) { onResult(-1) }
             }
         }
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+        var i = 0
+
+        while (i < line.length) {
+            val c = line[i]
+            when {
+                c == '"' && inQuotes && i + 1 < line.length && line[i + 1] == '"' -> {
+                    current.append('"')
+                    i++
+                }
+                c == '"' -> inQuotes = !inQuotes
+                c == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current.clear()
+                }
+                else -> current.append(c)
+            }
+            i++
+        }
+        result.add(current.toString())
+        return result
     }
 
     // --- Search & Comparison Logic ---

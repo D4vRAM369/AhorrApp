@@ -16,10 +16,15 @@ import com.d4vram.ahorrapp.ui.screens.*
 @Composable
 fun NavGraph(navController: NavHostController, padding: androidx.compose.foundation.layout.PaddingValues, viewModel: TpvViewModel) {
     val showOnboarding by viewModel.showOnboarding.collectAsState()
+    val showWelcomeScreen by viewModel.showWelcomeScreen.collectAsState()
 
     NavHost(
         navController = navController,
-        startDestination = if (showOnboarding) "onboarding" else "welcome",
+        startDestination = when {
+            showOnboarding -> "onboarding"
+            showWelcomeScreen -> "welcome"
+            else -> "home"
+        },
         modifier = Modifier.padding(padding)
     ) {
         composable("onboarding") {
@@ -40,7 +45,50 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
         }
 
         composable("welcome") {
-            WelcomeScreen(onContinue = { navController.navigate("home") })
+            if (!showWelcomeScreen) {
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    navController.navigate("home") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                }
+            } else {
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    viewModel.registerWelcomeScreenShown()
+                }
+                WelcomeScreen(
+                    onContinue = {
+                        navController.navigate("home") {
+                            popUpTo("welcome") { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable("onboarding_replay") {
+            OnboardingScreen(
+                onFinish = {
+                    navController.navigate("welcome_replay") {
+                        popUpTo("onboarding_replay") { inclusive = true }
+                    }
+                },
+                onSkip = {
+                    navController.navigate("welcome_replay") {
+                        popUpTo("onboarding_replay") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("welcome_replay") {
+            WelcomeScreen(
+                onContinue = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
 
         composable("home") {
@@ -112,7 +160,10 @@ fun NavGraph(navController: NavHostController, padding: androidx.compose.foundat
         composable("profile") {
             ProfileScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onReplayTutorial = {
+                    navController.navigate("onboarding_replay")
+                }
             )
         }
     }

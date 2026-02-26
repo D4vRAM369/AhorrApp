@@ -597,7 +597,7 @@ class Repository(context: Context) {
         }
     }
 
-    suspend fun checkPriceAlerts(): List<Triple<PriceAlert, SupabasePriceEntry, Double>> {
+    suspend fun checkPriceAlerts(deviceId: String): List<Triple<PriceAlert, SupabasePriceEntry, Double>> {
         // Esta función busca alertas que necesiten notificación
         // Devuelve: (Alert, LatestPrice, PriceDropPercentage)
 
@@ -606,7 +606,10 @@ class Repository(context: Context) {
         try {
             // Obtener todas las alertas activas
             val allAlerts = supabase.from("price_alerts").select {
-                filter { eq("is_active", true) }
+                filter {
+                    eq("is_active", true)
+                    eq("device_id", deviceId)
+                }
             }.decodeList<PriceAlert>()
 
             for (alert in allAlerts) {
@@ -614,9 +617,16 @@ class Repository(context: Context) {
                 val latestPrice = supabase.from("prices").select {
                     filter { eq("barcode", alert.barcode) }
                 }.decodeList<SupabasePriceEntry>()
-                    .minByOrNull { it.createdAt ?: "" } // Más reciente primero
+                    .maxByOrNull { it.createdAt ?: "" }
 
                 if (latestPrice != null) {
+                    // Evitar repetir la misma alerta si ya se notificó tras este último precio
+                    val wasAlreadyAlertedForThisSnapshot =
+                        alert.lastAlertAt != null &&
+                        latestPrice.createdAt != null &&
+                        latestPrice.createdAt <= alert.lastAlertAt
+                    if (wasAlreadyAlertedForThisSnapshot) continue
+
                     val currentPrice = latestPrice.price
 
                     // Verificar si cumple con criterios de alerta
@@ -634,8 +644,12 @@ class Repository(context: Context) {
 
                             if (previousPrices.isNotEmpty()) {
                                 val previousPrice = previousPrices.first().price
-                                val dropPercentage = ((previousPrice - currentPrice) / previousPrice) * 100
-                                dropPercentage >= alert.alertPercentage
+                                if (previousPrice <= 0.0) {
+                                    false
+                                } else {
+                                    val dropPercentage = ((previousPrice - currentPrice) / previousPrice) * 100
+                                    dropPercentage >= alert.alertPercentage
+                                }
                             } else {
                                 false // No hay precio anterior para comparar
                             }
@@ -655,6 +669,7 @@ class Repository(context: Context) {
 
                             if (previousPrices.isNotEmpty()) {
                                 val previousPrice = previousPrices.first().price
+                                if (previousPrice <= 0.0) 0.0 else
                                 ((previousPrice - currentPrice) / previousPrice) * 100
                             } else {
                                 0.0

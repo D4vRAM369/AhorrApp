@@ -18,10 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.d4vram.ahorrapp.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.isActive
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import kotlinx.coroutines.flow.filter
@@ -40,36 +36,18 @@ import kotlinx.coroutines.flow.filter
 @Composable
 fun WelcomeScreen(onContinue: () -> Unit) {
     val scrollState = rememberScrollState()
-    var autoScrollEnabled by remember { mutableStateOf(true) }
 
-    // Desactiva auto-scroll al detectar interacción manual
-    LaunchedEffect(scrollState.isScrollInProgress) {
-        if (scrollState.isScrollInProgress) autoScrollEnabled = false
-    }
+    // Auto-scroll suave y gradual solo hacia abajo
+    LaunchedEffect(Unit) {
+        val maxScroll = snapshotFlow { scrollState.maxValue }
+            .filter { it > 0 }
+            .first()
 
-    // Auto-scroll suave arriba/abajo para darle presencia
-    LaunchedEffect(autoScrollEnabled) {
-        if (!autoScrollEnabled) return@LaunchedEffect
-
-
-        // Bucle de auto-scroll mientras no haya interacción
-        while (isActive && autoScrollEnabled) {
-            val max = scrollState.maxValue
-            if (max > 0) {
-                scrollState.animateScrollTo(
-                    value = max,
-                    animationSpec = tween(durationMillis = 4500, easing = LinearEasing)
-                )
-                delay(700)
-                scrollState.animateScrollTo(
-                    value = 0,
-                    animationSpec = tween(durationMillis = 4500, easing = LinearEasing)
-                )
-                delay(700)
-            } else {
-                delay(500)
-            }
-        }
+        delay(500)
+        scrollState.animateScrollTo(
+            value = maxScroll,
+            animationSpec = tween(durationMillis = 7000, easing = LinearEasing)
+        )
     }
 
     Column(

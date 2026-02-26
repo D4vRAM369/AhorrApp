@@ -11,8 +11,6 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.d4vram.ahorrapp.R
 import com.d4vram.ahorrapp.data.Repository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class PriceAlertWorker(
     private val context: Context,
@@ -37,9 +35,13 @@ class PriceAlertWorker(
 
             // Obtener instancia del repositorio
             val repository = Repository(context)
+            val deviceId = android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID
+            ) ?: "unknown_device"
 
             // Verificar alertas de precio
-            val alertsToNotify = repository.checkPriceAlerts()
+            val alertsToNotify = repository.checkPriceAlerts(deviceId)
 
             if (alertsToNotify.isNotEmpty()) {
                 // Enviar notificaciones para cada alerta
